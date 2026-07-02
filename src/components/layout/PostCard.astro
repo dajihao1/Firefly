@@ -1,6 +1,5 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { render } from "astro:content";
 import { Icon } from "astro-icon/components";
 import CoverImage from "@/components/common/CoverImage.astro";
 import PostMetadata from "@/components/layout/PostMeta.astro";
@@ -61,8 +60,7 @@ const descriptionLines = Math.max(
 const descriptionClampLines = String(descriptionLines);
 const shouldClampDescription = descriptionLines > 0;
 
-const { remarkPluginFrontmatter } = await render(entry);
-const descriptionText = description || remarkPluginFrontmatter.excerpt || "";
+const descriptionText = "";
 ---
 
 <div
@@ -118,16 +116,18 @@ const descriptionText = description || remarkPluginFrontmatter.excerpt || "";
       className="mb-4 post-meta"
     />
 
-    <!-- description -->
-    <div
-      class:list={[
-        "transition text-75 md:pr-4 description grow",
-        { "description-clamped": shouldClampDescription },
-      ]}
-      title={descriptionText}
-    >
-      {descriptionText}
-    </div>
+    <!-- description hidden for private collection mode -->
+    {descriptionText && (
+      <div
+        class:list={[
+          "transition text-75 md:pr-4 description grow",
+          { "description-clamped": shouldClampDescription },
+        ]}
+        title={descriptionText}
+      >
+        {descriptionText}
+      </div>
+    )}
 
     <!-- tags -->
     {

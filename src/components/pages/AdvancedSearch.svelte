@@ -161,9 +161,6 @@ const handleInput = () => {
                             <h5 class="mb-2 text-2xl font-bold tracking-tight text-90 group-hover:text-(--primary) transition-colors">
                                 {@html result.meta.title}
                             </h5>
-                            <p class="font-normal text-75">
-                                {@html result.excerpt}
-                            </p>
                         </a>
                     </div>
                 {/each}
