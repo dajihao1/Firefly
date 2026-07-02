@@ -7,11 +7,29 @@ const pagesCmsUrl = "https://app.pagescms.org/";
 const postsUrl = `${repoUrl}/tree/master/src/content/posts`;
 const configUrl = `${repoUrl}/tree/master/src/config`;
 const deploymentsUrl = "https://dash.cloudflare.com/";
+const passwordHash = "36de60e127f9ae883989aa7721cc3ebb2d29d5499861cbe09bd5288c6b614225";
 ---
 
 <MainGridLayout title={title} description="管理文章、资料与站点配置的入口">
 	<section class="card-base px-8 py-7">
-		<div class="max-w-3xl">
+		<div id="admin-lock" class="max-w-xl">
+			<p class="text-sm font-semibold text-(--primary) mb-3">Private</p>
+			<h1 class="text-3xl font-bold mb-4">后台管理</h1>
+			<p class="text-75 leading-7 mb-6">
+				这里是私人管理入口。输入密码后，才会显示文章和站点配置入口。
+			</p>
+
+			<form id="admin-lock-form" class="lock-form">
+				<label class="lock-label" for="admin-password">管理密码</label>
+				<div class="lock-row">
+					<input id="admin-password" class="lock-input" name="password" type="password" autocomplete="current-password" placeholder="请输入密码" />
+					<button class="lock-button" type="submit">进入</button>
+				</div>
+				<p id="admin-lock-error" class="lock-error hidden">密码不对，再试一次。</p>
+			</form>
+		</div>
+
+		<div id="admin-content" class="max-w-3xl hidden">
 			<p class="text-sm font-semibold text-(--primary) mb-3">Admin</p>
 			<h1 class="text-3xl font-bold mb-4">后台管理</h1>
 			<p class="text-75 leading-7 mb-6">
@@ -44,7 +62,98 @@ const deploymentsUrl = "https://dash.cloudflare.com/";
 	</section>
 </MainGridLayout>
 
+<script define:vars={{ passwordHash }}>
+	const unlockKey = "daji-admin-unlocked";
+	const lock = document.getElementById("admin-lock");
+	const content = document.getElementById("admin-content");
+	const form = document.getElementById("admin-lock-form");
+	const input = document.getElementById("admin-password");
+	const error = document.getElementById("admin-lock-error");
+
+	function showAdmin() {
+		lock?.classList.add("hidden");
+		content?.classList.remove("hidden");
+	}
+
+	async function sha256(value) {
+		const data = new TextEncoder().encode(value);
+		const digest = await crypto.subtle.digest("SHA-256", data);
+		return Array.from(new Uint8Array(digest))
+			.map((byte) => byte.toString(16).padStart(2, "0"))
+			.join("");
+	}
+
+	if (sessionStorage.getItem(unlockKey) === "true") {
+		showAdmin();
+	}
+
+	form?.addEventListener("submit", async (event) => {
+		event.preventDefault();
+		const value = input instanceof HTMLInputElement ? input.value : "";
+		if ((await sha256(value)) === passwordHash) {
+			sessionStorage.setItem(unlockKey, "true");
+			showAdmin();
+			return;
+		}
+		error?.classList.remove("hidden");
+		if (input instanceof HTMLInputElement) {
+			input.value = "";
+			input.focus();
+		}
+	});
+</script>
+
 <style>
+	.lock-form {
+		display: flex;
+		flex-direction: column;
+		gap: 0.65rem;
+	}
+
+	.lock-label {
+		color: var(--content-meta);
+		font-size: 0.875rem;
+		font-weight: 700;
+	}
+
+	.lock-row {
+		display: flex;
+		gap: 0.75rem;
+	}
+
+	.lock-input {
+		background: var(--card-bg);
+		border: 1px solid color-mix(in oklab, var(--primary) 20%, transparent);
+		border-radius: var(--radius-large);
+		color: var(--content);
+		flex: 1;
+		min-width: 0;
+		padding: 0.85rem 1rem;
+		outline: none;
+	}
+
+	.lock-input:focus {
+		border-color: color-mix(in oklab, var(--primary) 55%, transparent);
+	}
+
+	.lock-button {
+		background: var(--primary);
+		border-radius: var(--radius-large);
+		color: var(--btn-content);
+		font-weight: 800;
+		padding: 0.85rem 1.15rem;
+		transition: 0.2s ease;
+	}
+
+	.lock-button:hover {
+		transform: translateY(-1px);
+	}
+
+	.lock-error {
+		color: #ef4444;
+		font-size: 0.875rem;
+	}
+
 	.btn-card {
 		border: 1px solid color-mix(in oklab, var(--primary) 20%, transparent);
 		border-radius: var(--radius-large);
@@ -70,5 +179,11 @@ const deploymentsUrl = "https://dash.cloudflare.com/";
 		color: var(--content-meta);
 		font-size: 0.875rem;
 		line-height: 1.5;
+	}
+
+	@media (max-width: 640px) {
+		.lock-row {
+			flex-direction: column;
+		}
 	}
 </style>
