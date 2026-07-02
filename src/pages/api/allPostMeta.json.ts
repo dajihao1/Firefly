@@ -1,4 +1,5 @@
 import { getSortedPosts } from "@/utils/content-utils";
+import { getPublicPostTitle } from "@/utils/privacy-utils";
 
 export async function GET() {
 	const posts = await getSortedPosts();
@@ -6,7 +7,7 @@ export async function GET() {
 	const allPostsData = posts
 		.map((post) => ({
 			id: post.id,
-			title: post.data.title,
+			title: getPublicPostTitle(post.data.title, !!post.data.password),
 			description: "",
 			published: post.data.published.getTime(),
 			category: post.data.category || "",

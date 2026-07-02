@@ -1,6 +1,7 @@
 import rss, { type RSSFeedItem } from "@astrojs/rss";
 import { getSortedPosts } from "@utils/content-utils";
 import { formatDateI18nWithTime } from "@utils/date-utils";
+import { getPublicPostTitle } from "@utils/privacy-utils";
 import { url } from "@utils/url-utils";
 import type { APIContext } from "astro";
 import { siteConfig } from "@/config";
@@ -11,7 +12,7 @@ export async function GET(context: APIContext) {
 	const feedItems: RSSFeedItem[] = [];
 	for (const post of blog) {
 		feedItems.push({
-			title: post.data.title,
+			title: getPublicPostTitle(post.data.title, !!post.data.password),
 			pubDate: post.data.published,
 			description: "",
 			link: url(`/posts/${post.id}/`),

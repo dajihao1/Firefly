@@ -3,6 +3,7 @@ import { getCollection } from "astro:content";
 import * as fs from "node:fs";
 import type { APIContext, GetStaticPaths } from "astro";
 import satori from "satori";
+import { getPublicPostTitle } from "@/utils/privacy-utils";
 import { removeFileExtension } from "@/utils/url-utils";
 
 import { profileConfig } from "../../config/profileConfig";
@@ -138,7 +139,8 @@ export async function GET({
 		day: "numeric",
 	});
 
-	const description = post.data.description;
+	const publicTitle = getPublicPostTitle(post.data.title, !!post.data.password);
+	const description = post.data.password ? "" : post.data.description;
 
 	const template = {
 		type: "div",
@@ -235,7 +237,7 @@ export async function GET({
 													WebkitLineClamp: 3,
 													WebkitBoxOrient: "vertical",
 												},
-												children: post.data.title,
+												children: publicTitle,
 											},
 										},
 									],

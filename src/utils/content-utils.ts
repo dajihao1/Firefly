@@ -1,6 +1,7 @@
 import { type CollectionEntry, getCollection } from "astro:content";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
+import { getPublicPostTitle } from "@utils/privacy-utils";
 import { getCategoryUrl } from "@utils/url-utils";
 
 // // Retrieve posts and sort them by publication date
@@ -27,18 +28,27 @@ export async function getSortedPosts() {
 
 	for (let i = 1; i < sorted.length; i++) {
 		sorted[i].data.nextSlug = sorted[i - 1].id;
-		sorted[i].data.nextTitle = sorted[i - 1].data.title;
+		sorted[i].data.nextTitle = getPublicPostTitle(
+			sorted[i - 1].data.title,
+			!!sorted[i - 1].data.password,
+		);
 	}
 	for (let i = 0; i < sorted.length - 1; i++) {
 		sorted[i].data.prevSlug = sorted[i + 1].id;
-		sorted[i].data.prevTitle = sorted[i + 1].data.title;
+		sorted[i].data.prevTitle = getPublicPostTitle(
+			sorted[i + 1].data.title,
+			!!sorted[i + 1].data.password,
+		);
 	}
 
 	return sorted;
 }
 export type PostForList = {
 	id: string;
-	data: CollectionEntry<"posts">["data"];
+	data: Pick<
+		CollectionEntry<"posts">["data"],
+		"title" | "tags" | "category" | "published"
+	>;
 };
 export async function getSortedPostsList(): Promise<PostForList[]> {
 	const sortedFullPosts = await getRawSortedPosts();
@@ -46,7 +56,12 @@ export async function getSortedPostsList(): Promise<PostForList[]> {
 	// delete post.body
 	const sortedPostsList = sortedFullPosts.map((post) => ({
 		id: post.id,
-		data: post.data,
+		data: {
+			title: getPublicPostTitle(post.data.title, !!post.data.password),
+			tags: post.data.tags,
+			category: post.data.category,
+			published: post.data.published,
+		},
 	}));
 
 	return sortedPostsList;

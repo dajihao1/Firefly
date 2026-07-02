@@ -29,6 +29,7 @@ import { siteConfig } from "@/config/siteConfig";
 import { sponsorConfig } from "@/config/sponsorConfig";
 import { formatDateToYYYYMMDD } from "@/utils/date-utils";
 import { getApiUrlList, processCoverImageSync } from "@/utils/image-utils";
+import { getPublicPostTitle } from "@/utils/privacy-utils";
 import { url } from "@/utils/url-utils";
 
 export async function getStaticPaths() {
@@ -45,11 +46,13 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content, headings } = await render(entry);
+const publicTitle = getPublicPostTitle(entry.data.title, !!entry.data.password);
+const publicDescription = entry.data.password ? "" : entry.data.description;
 
 const { remarkPluginFrontmatter } = await render(entry);
 
 const bannerPostMeta = {
-	title: entry.data.title,
+	title: publicTitle,
 	published: entry.data.published,
 	updated: entry.data.updated,
 	words: remarkPluginFrontmatter.words,
@@ -113,8 +116,8 @@ dayjs.extend(utc);
 const jsonLd = {
 	"@context": "https://schema.org",
 	"@type": "BlogPosting",
-	headline: entry.data.title,
-	description: entry.data.description || entry.data.title,
+	headline: publicTitle,
+	description: publicDescription || publicTitle,
 	keywords: entry.data.tags,
 	author: {
 		"@type": "Person",
@@ -133,8 +136,8 @@ const relatedPosts = await getRelatedPosts(entry, 5);
 
 <MainGridLayout
   banner={processedImage}
-  title={entry.data.title}
-  description={entry.data.description}
+  title={publicTitle}
+  description={publicDescription}
   lang={entry.data.lang}
   setOGTypeArticle={true}
   postSlug={entry.id}
@@ -220,7 +223,7 @@ const relatedPosts = await getRelatedPosts(entry, 5);
                     md:before:w-1 before:h-5 before:rounded-md before:bg-(--primary)
                     before:absolute before:top-3 before:-left-4.5"
         >
-          {entry.data.title}
+          {publicTitle}
         </div>
       </div>
 
@@ -302,9 +305,9 @@ const relatedPosts = await getRelatedPosts(entry, 5);
                         siteConfig.post.sharePoster && (
                           <SharePoster
                             client:load
-                            title={entry.data.title}
+                            title={publicTitle}
                             author={profileConfig.name}
-                            description={entry.data.description || entry.data.title}
+                            description={publicDescription || publicTitle}
                             pubDate={formatDateToYYYYMMDD(entry.data.published)}
                             coverImage={posterCoverUrl}
                             url={Astro.url.href}
@@ -334,7 +337,7 @@ const relatedPosts = await getRelatedPosts(entry, 5);
           {
             licenseConfig.enable && (
               <License
-                title={entry.data.title}
+                title={publicTitle}
                 id={entry.id}
                 pubDate={entry.data.published}
                 author={entry.data.author}
@@ -390,9 +393,9 @@ const relatedPosts = await getRelatedPosts(entry, 5);
                         siteConfig.post.sharePoster && (
                           <SharePoster
                             client:load
-                            title={entry.data.title}
+                            title={publicTitle}
                             author={profileConfig.name}
-                            description={entry.data.description || entry.data.title}
+                            description={publicDescription || publicTitle}
                             pubDate={formatDateToYYYYMMDD(entry.data.published)}
                             coverImage={posterCoverUrl}
                             url={Astro.url.href}
@@ -422,7 +425,7 @@ const relatedPosts = await getRelatedPosts(entry, 5);
           {
             licenseConfig.enable && (
               <License
-                title={entry.data.title}
+                title={publicTitle}
                 id={entry.id}
                 pubDate={entry.data.published}
                 author={entry.data.author}
