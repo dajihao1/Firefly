@@ -39,6 +39,7 @@ import { parseDirectiveNode } from "./src/plugins/remark-directive-rehype.js";
 import { remarkExcerpt } from "./src/plugins/remark-excerpt.js";
 import { remarkImageGrid } from "./src/plugins/remark-image-grid.js";
 import { remarkMermaid } from "./src/plugins/remark-mermaid.js";
+import { remarkNormalizeUrls } from "./src/plugins/remark-normalize-urls.js";
 import { remarkPlantuml } from "./src/plugins/remark-plantuml.js";
 import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
 
@@ -232,6 +233,7 @@ export default defineConfig({
 					: []),
 				remarkMath,
 				remarkReadingTime,
+				remarkNormalizeUrls,
 				remarkImageGrid,
 				remarkExcerpt,
 				remarkDirective,
@@ -323,4 +325,3 @@ export default defineConfig({
 		},
 	},
 });
-
