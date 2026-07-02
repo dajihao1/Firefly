@@ -1,0 +1,92 @@
+media:
+  input: public/uploads
+  output: /uploads
+
+content:
+  - name: posts
+    label: 收藏文章
+    type: collection
+    path: src/content/posts
+    format: yaml-frontmatter
+    filename: "{primary}.md"
+    view:
+      fields: [title, published, category, draft, pinned]
+      primary: title
+      sort: published
+      order: desc
+    fields:
+      - name: title
+        label: 标题
+        type: string
+      - name: published
+        label: 发布日期
+        type: date
+      - name: description
+        label: 摘要
+        type: text
+        required: false
+      - name: sourceLink
+        label: 原文链接
+        type: string
+        required: false
+      - name: category
+        label: 分类
+        type: string
+        required: false
+      - name: tags
+        label: 标签
+        type: string
+        list: true
+        required: false
+      - name: image
+        label: 封面图
+        type: image
+        required: false
+      - name: pinned
+        label: 置顶
+        type: boolean
+        required: false
+      - name: draft
+        label: 草稿
+        type: boolean
+        required: false
+      - name: comment
+        label: 允许评论
+        type: boolean
+        required: false
+      - name: body
+        label: 正文
+        type: rich-text
+        options:
+          format: markdown
+          switcher: true
+
+  - name: site-config
+    label: 站点配置代码
+    type: group
+    items:
+      - name: site
+        label: 站点基础配置
+        type: file
+        path: src/config/siteConfig.ts
+        format: code
+      - name: profile
+        label: 头像和个人简介
+        type: file
+        path: src/config/profileConfig.ts
+        format: code
+      - name: announcement
+        label: 公告
+        type: file
+        path: src/config/announcementConfig.ts
+        format: code
+      - name: navigation
+        label: 导航链接
+        type: file
+        path: src/config/navBarConfig.ts
+        format: code
+      - name: wallpaper
+        label: 横幅和壁纸
+        type: file
+        path: src/config/backgroundWallpaper.ts
+        format: code
