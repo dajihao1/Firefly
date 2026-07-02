@@ -8,7 +8,9 @@ content:
     type: collection
     path: src/content/posts
     format: yaml-frontmatter
-    filename: "{primary}.md"
+    filename:
+      template: "{year}-{month}-{day}-{title}.md"
+      field: create
     view:
       fields: [title, published, category, draft, pinned]
       primary: title
@@ -18,9 +20,11 @@ content:
       - name: title
         label: 标题
         type: string
+        required: true
       - name: published
         label: 发布日期
         type: date
+        required: true
       - name: description
         label: 摘要
         type: text
