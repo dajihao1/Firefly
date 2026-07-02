@@ -34,7 +34,6 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 	});
 
 	// 我的导航入口 - 指向自己的其他站点
-	// TODO: 把下面的 url 替换成你自己的真实地址
 	links.push({
 		name: "导航",
 		url: "#",
@@ -42,27 +41,39 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		children: [
 			{
 				name: "探针",
-				url: "https://8228122.com/probe",
+				url: "https://kan.wumingdaji.top/",
 				external: true,
 				icon: "material-symbols:monitor-heart",
 			},
 			{
 				name: "域名邮箱",
-				url: "https://8228122.com/mail",
+				url: "https://mail.8228122.com/",
 				external: true,
 				icon: "material-symbols:alternate-email",
 			},
 			{
 				name: "小说工具台",
-				url: "https://8228122.com/novel",
+				url: "https://xs.822812.xyz/",
 				external: true,
 				icon: "material-symbols:auto-stories",
 			},
 			{
 				name: "CPA",
-				url: "https://8228122.com/cpa",
+				url: "https://cpa.822812.xyz/management.html#/",
 				external: true,
 				icon: "material-symbols:assignment",
+			},
+			{
+				name: "API管理",
+				url: "https://new.822812.xyz/",
+				external: true,
+				icon: "material-symbols:api",
+			},
+			{
+				name: "后台管理",
+				url: "/admin/",
+				external: false,
+				icon: "material-symbols:admin-panel-settings",
 			},
 		],
 	});

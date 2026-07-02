@@ -1,0 +1,69 @@
+---
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+const title = "后台管理";
+const repoUrl = "https://github.com/dajihao1/Firefly";
+const postsUrl = `${repoUrl}/tree/master/src/content/posts`;
+const configUrl = `${repoUrl}/tree/master/src/config`;
+const deploymentsUrl = "https://dash.cloudflare.com/";
+---
+
+<MainGridLayout title={title} description="管理文章、资料与站点配置的入口">
+	<section class="card-base px-8 py-7">
+		<div class="max-w-3xl">
+			<p class="text-sm font-semibold text-(--primary) mb-3">Admin</p>
+			<h1 class="text-3xl font-bold mb-4">后台管理</h1>
+			<p class="text-75 leading-7 mb-6">
+				当前站点是静态博客，内容来自 GitHub 仓库。真正的在线后台需要接入 GitHub 授权或额外的 CMS 服务；在接好之前，可以先通过下面的入口管理内容和配置。
+			</p>
+
+			<div class="grid gap-4 md:grid-cols-2">
+				<a class="btn-card" href={postsUrl} target="_blank" rel="noopener noreferrer">
+					<span class="btn-title">文章管理</span>
+					<span class="btn-desc">新增、编辑或删除 Markdown 收藏文章</span>
+				</a>
+				<a class="btn-card" href={configUrl} target="_blank" rel="noopener noreferrer">
+					<span class="btn-title">站点配置</span>
+					<span class="btn-desc">修改头像、公告、简介、导航与外观</span>
+				</a>
+				<a class="btn-card" href={repoUrl} target="_blank" rel="noopener noreferrer">
+					<span class="btn-title">GitHub 仓库</span>
+					<span class="btn-desc">查看源码、提交记录和部署分支</span>
+				</a>
+				<a class="btn-card" href={deploymentsUrl} target="_blank" rel="noopener noreferrer">
+					<span class="btn-title">Cloudflare</span>
+					<span class="btn-desc">查看部署状态、域名绑定和访问控制</span>
+				</a>
+			</div>
+		</div>
+	</section>
+</MainGridLayout>
+
+<style>
+	.btn-card {
+		border: 1px solid color-mix(in oklab, var(--primary) 20%, transparent);
+		border-radius: var(--radius-large);
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		padding: 1rem 1.1rem;
+		transition: 0.2s ease;
+	}
+
+	.btn-card:hover {
+		background: color-mix(in oklab, var(--primary) 8%, transparent);
+		border-color: color-mix(in oklab, var(--primary) 45%, transparent);
+		transform: translateY(-1px);
+	}
+
+	.btn-title {
+		color: var(--primary);
+		font-weight: 700;
+	}
+
+	.btn-desc {
+		color: var(--content-meta);
+		font-size: 0.875rem;
+		line-height: 1.5;
+	}
+</style>
