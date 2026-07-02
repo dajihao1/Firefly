@@ -20,6 +20,7 @@ const postsCollection = defineCollection({
 		licenseName: z.string().optional().default(""),
 		licenseUrl: z.string().optional().default(""),
 		comment: z.boolean().optional().default(true),
+		passwordProtected: z.boolean().optional().default(false),
 		password: z.string().optional().default(""),
 		passwordHint: z.string().optional().default(""),
 

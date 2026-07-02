@@ -1,7 +1,10 @@
 import { type CollectionEntry, getCollection } from "astro:content";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
-import { getPublicPostTitle } from "@utils/privacy-utils";
+import {
+	getPublicPostTitle,
+	isPasswordProtectedPost,
+} from "@utils/privacy-utils";
 import { getCategoryUrl } from "@utils/url-utils";
 
 // // Retrieve posts and sort them by publication date
@@ -30,14 +33,14 @@ export async function getSortedPosts() {
 		sorted[i].data.nextSlug = sorted[i - 1].id;
 		sorted[i].data.nextTitle = getPublicPostTitle(
 			sorted[i - 1].data.title,
-			!!sorted[i - 1].data.password,
+			isPasswordProtectedPost(sorted[i - 1].data),
 		);
 	}
 	for (let i = 0; i < sorted.length - 1; i++) {
 		sorted[i].data.prevSlug = sorted[i + 1].id;
 		sorted[i].data.prevTitle = getPublicPostTitle(
 			sorted[i + 1].data.title,
-			!!sorted[i + 1].data.password,
+			isPasswordProtectedPost(sorted[i + 1].data),
 		);
 	}
 
@@ -57,7 +60,10 @@ export async function getSortedPostsList(): Promise<PostForList[]> {
 	const sortedPostsList = sortedFullPosts.map((post) => ({
 		id: post.id,
 		data: {
-			title: getPublicPostTitle(post.data.title, !!post.data.password),
+			title: getPublicPostTitle(
+				post.data.title,
+				isPasswordProtectedPost(post.data),
+			),
 			tags: post.data.tags,
 			category: post.data.category,
 			published: post.data.published,
@@ -181,7 +187,7 @@ export async function getRelatedPosts(
 
 	// 排除自身和加密文章
 	const candidates = allPosts.filter(
-		(p) => p.id !== currentPost.id && !p.data.password,
+		(p) => p.id !== currentPost.id && !isPasswordProtectedPost(p.data),
 	);
 
 	const currentTags = new Set(currentPost.data.tags || []);

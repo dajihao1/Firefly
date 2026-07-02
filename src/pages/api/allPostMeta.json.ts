@@ -1,5 +1,8 @@
 import { getSortedPosts } from "@/utils/content-utils";
-import { getPublicPostTitle } from "@/utils/privacy-utils";
+import {
+	getPublicPostTitle,
+	isPasswordProtectedPost,
+} from "@/utils/privacy-utils";
 
 export async function GET() {
 	const posts = await getSortedPosts();
@@ -7,11 +10,14 @@ export async function GET() {
 	const allPostsData = posts
 		.map((post) => ({
 			id: post.id,
-			title: getPublicPostTitle(post.data.title, !!post.data.password),
+			title: getPublicPostTitle(
+				post.data.title,
+				isPasswordProtectedPost(post.data),
+			),
 			description: "",
 			published: post.data.published.getTime(),
 			category: post.data.category || "",
-			password: !!post.data.password,
+			password: isPasswordProtectedPost(post.data),
 		}))
 		// 日历按纯日期排序，忽略置顶
 		.sort((a, b) => b.published - a.published);

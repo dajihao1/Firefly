@@ -56,6 +56,18 @@ content:
         label: 允许评论
         type: boolean
         required: false
+      - name: passwordProtected
+        label: 密码保护
+        type: boolean
+        required: false
+      - name: password
+        label: 访问密码（留空默认 82281228）
+        type: string
+        required: false
+      - name: passwordHint
+        label: 密码提示
+        type: string
+        required: false
       - name: body
         label: 正文
         type: rich-text

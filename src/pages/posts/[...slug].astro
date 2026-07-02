@@ -29,7 +29,11 @@ import { siteConfig } from "@/config/siteConfig";
 import { sponsorConfig } from "@/config/sponsorConfig";
 import { formatDateToYYYYMMDD } from "@/utils/date-utils";
 import { getApiUrlList, processCoverImageSync } from "@/utils/image-utils";
-import { getPublicPostTitle } from "@/utils/privacy-utils";
+import {
+	getProtectedPostPassword,
+	getPublicPostTitle,
+	isPasswordProtectedPost,
+} from "@/utils/privacy-utils";
 import { url } from "@/utils/url-utils";
 
 export async function getStaticPaths() {
@@ -46,8 +50,10 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content, headings } = await render(entry);
-const publicTitle = getPublicPostTitle(entry.data.title, !!entry.data.password);
-const publicDescription = entry.data.password ? "" : entry.data.description;
+const isProtected = isPasswordProtectedPost(entry.data);
+const protectedPassword = getProtectedPostPassword(entry.data);
+const publicTitle = getPublicPostTitle(entry.data.title, isProtected);
+const publicDescription = isProtected ? "" : entry.data.description;
 
 const { remarkPluginFrontmatter } = await render(entry);
 
@@ -197,7 +203,7 @@ const relatedPosts = await getRelatedPosts(entry, 5);
             }
           </div>
         </div>
-        {entry.data.password && (
+        {isProtected && (
           <div class="flex flex-row items-center">
             <div
               class="transition h-6 w-6 rounded-md bg-black/5 dark:bg-white/10 text-black/50 dark:text-white/50 flex items-center justify-center mr-2"
@@ -261,8 +267,8 @@ const relatedPosts = await getRelatedPosts(entry, 5);
         )
       }
 
-      {entry.data.password ? (
-        <EncryptedPost password={entry.data.password} slug={entry.id} hint={entry.data.passwordHint}>
+      {isProtected ? (
+        <EncryptedPost password={protectedPassword} slug={entry.id} hint={entry.data.passwordHint}>
           <Markdown class="mb-6 markdown-content onload-animation">
             <Content />
           </Markdown>
@@ -546,5 +552,5 @@ const relatedPosts = await getRelatedPosts(entry, 5);
   <RecommendedPost relatedPosts={relatedPosts} currentPostId={entry.id} />
 
   <!-- 评论 -->
-  {entry.data.comment && !entry.data.password && <Comment post={entry} />}
+  {entry.data.comment && !isProtected && <Comment post={entry} />}
 </MainGridLayout>
