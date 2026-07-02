@@ -2,6 +2,12 @@
 	"name": "firefly",
 	"compatibility_date": "2025-01-01",
 	"compatibility_flags": ["nodejs_compat"],
+	"routes": [
+		{
+			"pattern": "www.8228122.com/*",
+			"zone_name": "8228122.com"
+		}
+	],
 	"assets": {
 		"directory": "./dist"
 	}

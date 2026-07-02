@@ -11,7 +11,7 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 	showInNavbar: true,
 
 	// 使用方式："meting" 使用 Meting API，"local" 使用本地音乐列表
-	mode: "meting",
+	mode: "local",
 
 	// 默认音量 (0-1)
 	volume: 0.7,
@@ -50,10 +50,11 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 	local: {
 		playlist: [
 			{
-				name: "使一颗心免于哀伤",
-				artist: "知更鸟 / HOYO-MiX / Chevy",
-				url: "/assets/music/使一颗心免于哀伤-哼唱.mp3",
-				cover: "/assets/music/cover/109951169585655912.webp",
+				name: "爷爷泡的茶",
+				artist: "周杰伦",
+				url: "/assets/music/grandpa-tea-jay-chou.mp3",
+				cover:
+					"https://api.i-meto.com/meting/api?server=netease&type=pic&id=109951166698447900&auth=c6eeccaf4f4c469ed606bcc60da7e3092f850ff6",
 				lrc: "",
 			},
 		],
