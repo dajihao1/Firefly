@@ -26,81 +26,84 @@ description: >-
 sourceLink: https://linux.do/t/topic/2140889
 category: 教程
 tags:
-  - Linux.do、VPS、CPA、New API、Cloudflare
+  - 教程
+  - AI
+  - VPS
 pinned: true
 draft: false
 comment: false
+passwordProtected: false
 ---
-## [](https://linux.do/t/topic/2140889#p-17651625-h-1)前提
+## 前提
 
 > 非常感谢各位佬友对我之前文章的认可，既然大家对此类的文章比较感兴趣，恰巧我也研究过，所以继续给大家带来一个搭建中转站的教程
-> 
+>
 > 该文章不会着重的讲解CPA的使用，有兴趣的佬友可以看我的这篇文章：[拒绝token焦虑 cpa（CLI Proxy API）反代 chatgpt（Codex） 保姆级全图文教程 - 开发调优 - LINUX DO](https://linux.do/t/topic/2120257)
-> 
+>
 > 本教程需要的技术（版本仅作为参考）：
-> 
+>
 > **VPS（云服务器）（地区选择：硅谷）**：2c2g（2个CPU核数2G的内存）
-> 
+>
 > **Linux**：CentOS Linux release 7.6.1810 (Core)
-> 
+>
 > **docker**：26.1.4
-> 
+>
 > **docker-compose**：2.27.1
-> 
+>
 > **CLI Proxy API（CPA）**：latest（v6.10.9 ）（本教程会用newapi作为token监控和代理节点，cpa只是作为newapi的一个渠道使用和用于管理认证文件，所以用最新的版本即可）
-> 
+>
 > **NEW API**：latest（v1.0.0-rc.4）
-> 
+>
 > **Nginx**：latest（1.29.8）
-> 
+>
 > 本教程需要的工具：
-> 
+>
 > **[FinalShell](https://www.hostbuf.com/)**：SSH远程连接工具
 
 > 我买了腾讯云的服务器用来做教学，全程可用国内网访问
-> 
+>
 > 有vps的佬可以跳过这一步了
 
-## [](https://linux.do/t/topic/2140889#p-17651625-httpscloudtencentcomactissdk-topnav-3)活动页[腾讯云最新活动](https://cloud.tencent.com/act?Is=sdk-topnav)
+## 活动页[腾讯云最新活动](https://cloud.tencent.com/act?Is=sdk-topnav)
 
 > 这个为新人优惠，2c2g一年99米
-> 
+>
 > 这是两个图片拼接起来的，颜色不同的大框表示不同的图片，这两个图片的截取在同一个页面，下滑即可
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/e/c/4/ec44713d232cf37e7f736500e1db205a5d8711e1_2_690x449.png)](https://cdn3.ldstatic.com/original/4X/e/c/4/ec44713d232cf37e7f736500e1db205a5d8711e1.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/e/c/4/ec44713d232cf37e7f736500e1db205a5d8711e1_2_690x449.png)
 
-## [](https://linux.do/t/topic/2140889#p-17651625-h-4)购买完毕后进入控制台
+## 购买完毕后进入控制台
 
 > 这也是两张图片拼接起来的，颜色不同的大框表示不同的图片，上面黄框是腾讯云的主页的头部标签，下面红框是点击控制台后进入控制台的页面
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/e/a/5/ea5302c9721de4684911886bf23bc2c96c48d0af_2_690x235.png)](https://cdn3.ldstatic.com/original/4X/e/a/5/ea5302c9721de4684911886bf23bc2c96c48d0af.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/e/a/5/ea5302c9721de4684911886bf23bc2c96c48d0af_2_690x235.png)
 
-## [](https://linux.do/t/topic/2140889#p-17651625-ip-5)查看服务器ip
+## 查看服务器ip
 
 > 也是由黄框和红框分别不同的图片
-> 
+>
 > 由于腾讯云默认安全组打开了22端口（SSH服务），这里就不进安全组了，后文有讲到如何配置安全组，这里不过多赘述
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/5/d/f/5df862c7070dc75d0b42cf02a242e51fdd230f92_2_690x223.png)](https://cdn3.ldstatic.com/original/4X/5/d/f/5df862c7070dc75d0b42cf02a242e51fdd230f92.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/5/d/f/5df862c7070dc75d0b42cf02a242e51fdd230f92_2_690x223.png)
 
-## [](https://linux.do/t/topic/2140889#p-17651625-finalshell-6)使用FinalShell连接到服务器
+## 使用FinalShell连接到服务器
 
 > 填写名称、主机ip、用户名和密码即可连接到我们的服务器
-> 
+>
 > FinalShell的好处就是修改文件或者上传下载文件时是可视化的，不用一遍一遍敲命令行
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/b/9/c/b9c3cf5162ff7decddccdfda399ae6fe00bafc84_2_690x378.png)](https://cdn3.ldstatic.com/original/4X/b/9/c/b9c3cf5162ff7decddccdfda399ae6fe00bafc84.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/b/9/c/b9c3cf5162ff7decddccdfda399ae6fe00bafc84_2_690x378.png)
 
-## [](https://linux.do/t/topic/2140889#p-17651625-h-7)对外中转站教程开始
+## 对外中转站教程开始
 
-## [](https://linux.do/t/topic/2140889#p-17651625-h-8)一、准备工作
+## 一、准备工作
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-1-9)1、创建一个文件夹用于存文件，并进入该文件夹
+### 1、创建一个文件夹用于存文件，并进入该文件夹
 
 > proxy：用于存放docker-compose.yml文件（启动文件夹）
-> 
+>
 > cpa：用于存放cpa的配置文件（config.yaml）和其他的挂载卷信息（日志、Oauth认证文件）
-> 
+>
 > newapi：用于存放new api的挂载卷信息（日志、配置文件）
 
 ```bash
@@ -108,11 +111,11 @@ mkdir -p /opt/proxy/{cpa/{logs,auths},newapi/{data,logs}} && cd /opt/proxy && to
 ```
 
 > 执行上述命令后，我们就可以看到下面图片所示内容
-> 
+>
 > newapi里面就不展示了，里面的文件是空的
-> 
+>
 > 需要修改proxy文件夹中的docker-compose.yml和cpa目录下的config.yaml文件
-> 
+>
 > 目录结构如下
 
 ```plaintext
@@ -127,9 +130,9 @@ mkdir -p /opt/proxy/{cpa/{logs,auths},newapi/{data,logs}} && cd /opt/proxy && to
     └── logs/
 ```
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/a/7/d/a7de86914c525d25b2f83831c77a5bb596a5634a_2_690x368.png)](https://cdn3.ldstatic.com/original/4X/a/7/d/a7de86914c525d25b2f83831c77a5bb596a5634a.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/a/7/d/a7de86914c525d25b2f83831c77a5bb596a5634a_2_690x368.png)
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-2cpa-configyaml-10)2、cpa目录下的 config.yaml 文件
+### 2、cpa目录下的 config.yaml 文件
 
 > 包含![:warning:](https://cdn.ldstatic.com/images/emoji/twemoji/warning.png?v=15 ":warning:")的参数是需要修改的，包含![:red_question_mark:](https://cdn.ldstatic.com/images/emoji/twemoji/red_question_mark.png?v=15 ":red_question_mark:")的是可修改的，其他的可以照抄
 
@@ -179,7 +182,7 @@ ws-auth: false
 usage-statistics-enabled: false
 ```
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-3proxy-docker-composeyml-11)3、proxy目录下的 docker-compose.yml 文件
+### 3、proxy目录下的 docker-compose.yml 文件
 
 > 包含![:warning:](https://cdn.ldstatic.com/images/emoji/twemoji/warning.png?v=15 ":warning:")的参数是需要修改的，包含![:red_question_mark:](https://cdn.ldstatic.com/images/emoji/twemoji/red_question_mark.png?v=15 ":red_question_mark:")的是可修改的，其他的可以照抄
 
@@ -289,11 +292,11 @@ volumes:
 #  mysql_data:
 ```
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-4-optproxycpaauths-12)4、把认证文件放进 /opt/proxy/cpa/auths 目录下
+### 4、把认证文件放进 /opt/proxy/cpa/auths 目录下
 
-[![image](https://cdn3.ldstatic.com/original/4X/f/0/8/f085b0d0c4305dd2a35a5d6a7e51fda8b4c4a0b4.png)](https://cdn3.ldstatic.com/original/4X/f/0/8/f085b0d0c4305dd2a35a5d6a7e51fda8b4c4a0b4.png "image")
+![image](https://cdn3.ldstatic.com/original/4X/f/0/8/f085b0d0c4305dd2a35a5d6a7e51fda8b4c4a0b4.png)
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-5linux3000-13)5、去Linux的防火墙打开3000端口
+### 5、去Linux的防火墙打开3000端口
 
 先查看下防火墙状态
 
@@ -331,30 +334,30 @@ success
 3000/tcp
 ```
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-6-14)6、打开云服务器的安全组
+### 6、打开云服务器的安全组
 
 > 我用的是腾讯云的vps，这里用腾讯云举例，其他的也是大同小异
 
-#### [](https://linux.do/t/topic/2140889#p-17651625-h-1-15)（1、先去控制台进入选择我们的服务器
+#### （1、先去控制台进入选择我们的服务器
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/d/1/8/d1831b90e4cd7ad8422acb6b6989836b8fe1ffe6_2_625x500.png)](https://cdn3.ldstatic.com/original/4X/d/1/8/d1831b90e4cd7ad8422acb6b6989836b8fe1ffe6.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/d/1/8/d1831b90e4cd7ad8422acb6b6989836b8fe1ffe6_2_625x500.png)
 
-#### [](https://linux.do/t/topic/2140889#p-17651625-h-2ssh22-16)（2、选择防火墙并添加规则，下面三个是官方配置的，不要动，特别是SSH登录（22端口）
+#### （2、选择防火墙并添加规则，下面三个是官方配置的，不要动，特别是SSH登录（22端口）
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/f/4/d/f4d27a3d5af90b6e6ee14f13c3d78cb7985fa5bf_2_690x247.png)](https://cdn3.ldstatic.com/original/4X/f/4/d/f4d27a3d5af90b6e6ee14f13c3d78cb7985fa5bf.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/f/4/d/f4d27a3d5af90b6e6ee14f13c3d78cb7985fa5bf_2_690x247.png)
 
-#### [](https://linux.do/t/topic/2140889#p-17651625-h-3-17)（3、添加规则：配置来源和端口号
+#### （3、添加规则：配置来源和端口号
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/6/4/a/64a95b16f3502348c530084e86169f409c73095a_2_690x252.png)](https://cdn3.ldstatic.com/original/4X/6/4/a/64a95b16f3502348c530084e86169f409c73095a.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/6/4/a/64a95b16f3502348c530084e86169f409c73095a_2_690x252.png)
 
-#### [](https://linux.do/t/topic/2140889#p-17651625-h-4-18)（4、确认好后就多了一条
+#### （4、确认好后就多了一条
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/e/b/4/eb4842802eb602b072b077c4f0c0a0b628ff6f79_2_690x291.png)](https://cdn3.ldstatic.com/original/4X/e/b/4/eb4842802eb602b072b077c4f0c0a0b628ff6f79.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/e/b/4/eb4842802eb602b072b077c4f0c0a0b628ff6f79_2_690x291.png)
 
-## [](https://linux.do/t/topic/2140889#p-17651625-docker-compose-19)二、执行docker compose文件
+## 二、执行docker compose文件
 
 > 在 /opt/proxy 目录下（你的 docker-compose.yml 文件所在目录）
-> 
+>
 > 执行命令 `docker compose up -d` 即可
 
 ```bash
@@ -373,7 +376,7 @@ WARN[0000] /opt/proxy/docker-compose.yml: `version` is obsolete
  ✔ Container new-api       Started 
 ```
 
-## [](https://linux.do/t/topic/2140889#p-17651625-psdocker-compose-20)PS：关闭docker compose后重启报错
+## PS：关闭docker compose后重启报错
 
 > 关闭docker compose命令
 
@@ -382,178 +385,178 @@ docker compose down
 ```
 
 > 我重启时遇见了下面的问题
-> 
+>
 > 这里只需要重启docker再启动docker compose即可
-> 
+>
 > 重启docker：`systemctl restart docker`
-> 
+>
 > 启动docker compose：`docker compose up -d`
 
 ```bash
 [root@VM-0-16-centos proxy]# docker compose up -d WARN[0000] /opt/proxy/docker-compose.yml: `version` is obsolete [+] Running 1/0 ✘ Network proxy_default Error 0.0s failed to create network proxy_default: Error response from daemon: Failed to Setup IP tables: Unable to enable SKIP DNAT rule: (iptables failed: iptables --wait -t nat -I DOCKER -i br-b977b99684c8 -j RETURN: iptables: No chain/target/match by that name. (exit status 1))
 ```
 
-## [](https://linux.do/t/topic/2140889#p-17651625-httpip3000-21)三、我们通过 [http://ip:3000](http://ip:3000/) 就可以访问我们中转站了
+## 三、我们通过 [http://ip:3000](http://ip:3000/) 就可以访问我们中转站了
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/f/8/5/f85e2fded889f2d445af9b7e6fc341f5158f57b2_2_690x324.png)](https://cdn3.ldstatic.com/original/4X/f/8/5/f85e2fded889f2d445af9b7e6fc341f5158f57b2.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/f/8/5/f85e2fded889f2d445af9b7e6fc341f5158f57b2_2_690x324.png)
 
-## [](https://linux.do/t/topic/2140889#p-17651625-newapi-22)四、newapi配置
+## 四、newapi配置
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-1-23)1、登录
+### 1、登录
 
 > 我们通过管理员登录，就可以看见只有管理员才能看见的菜单了
-> 
+>
 > 而这些菜单就是对关键的配置
-> 
+>
 > 我这里只讲一下几个关键菜单配置
-> 
+>
 > 这些菜单也只是挑重点讲一下，最后能使用即可，如果自用或者公益站这些足以，如果商用就得自己下功夫去看官网文档，或者把源码下载下来二次开发了
-> 
+>
 > 如果感兴趣可以去官网查看文档，写的很详细：[渠道管理 | New API](https://docs.newapi.pro/zh/docs/guide/feature-guide/admin/channel)
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-2-24)2、渠道管理
+### 2、渠道管理
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/a/6/c/a6cadc5ea4dbfabd35d7c86eccb581a074ce11ac_2_690x318.png)](https://cdn3.ldstatic.com/original/4X/a/6/c/a6cadc5ea4dbfabd35d7c86eccb581a074ce11ac.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/a/6/c/a6cadc5ea4dbfabd35d7c86eccb581a074ce11ac_2_690x318.png)
 
-#### [](https://linux.do/t/topic/2140889#p-17651625-h-25)添加渠道
+#### 添加渠道
 
 > 这里填写我们cpa配置的apikey和docker compose配置的服务名（因为在同一个docker compose文件中，他们共享同一个docker网络）
-> 
+>
 > 名称：随意
-> 
+>
 > 秘钥：cpa中config.yaml配置的秘钥
-> 
+>
 > API地址（放个可以复制粘贴的：[http://cpa:8317](http://cpa:8317/)）：就是cpa的地址
-> 
+>
 > 模型：秘钥和api地址填好后点击获取即可
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/e/8/3/e83fdf57c49fc9ab6be183285584dc79342e3dfb_2_690x435.png)](https://cdn3.ldstatic.com/original/4X/e/8/3/e83fdf57c49fc9ab6be183285584dc79342e3dfb.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/e/8/3/e83fdf57c49fc9ab6be183285584dc79342e3dfb_2_690x435.png)
 
 点击测试后发现报错，我们就根据报错提示去配置价格
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/b/b/1/bb15b7ca8fb202dd6d87528a3abbb3393eec940f_2_690x149.png)](https://cdn3.ldstatic.com/original/4X/b/b/1/bb15b7ca8fb202dd6d87528a3abbb3393eec940f.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/b/b/1/bb15b7ca8fb202dd6d87528a3abbb3393eec940f_2_690x149.png)
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-3-26)3、系统管理
+### 3、系统管理
 
-#### [](https://linux.do/t/topic/2140889#p-17651625-h-27)设置模型价格
+#### 设置模型价格
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/d/d/2/dd244e9a803c2e993a5b319c8a32e4d030b6455d_2_690x288.png)](https://cdn3.ldstatic.com/original/4X/d/d/2/dd244e9a803c2e993a5b319c8a32e4d030b6455d.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/d/d/2/dd244e9a803c2e993a5b319c8a32e4d030b6455d_2_690x288.png)
 
 我们再去点击测试，发现就可以通过了
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/5/e/f/5ef1e33731c76f6dfce55b1d523ee4b27814d618_2_690x140.png)](https://cdn3.ldstatic.com/original/4X/5/e/f/5ef1e33731c76f6dfce55b1d523ee4b27814d618.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/5/e/f/5ef1e33731c76f6dfce55b1d523ee4b27814d618_2_690x140.png)
 
 在模型广场里面也可以看见我们配置的模型了
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/b/0/0/b00fc30821499fe0e51df1db7d8d5f5a61772dd6_2_690x226.jpeg)](https://cdn3.ldstatic.com/original/4X/b/0/0/b00fc30821499fe0e51df1db7d8d5f5a61772dd6.jpeg "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/b/0/0/b00fc30821499fe0e51df1db7d8d5f5a61772dd6_2_690x226.jpeg)
 
-#### [](https://linux.do/t/topic/2140889#p-17651625-h-28)其他
+#### 其他
 
 系统设置里面有很多功能，比如修改可见菜单
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/0/1/c/01c5c5e7e6f5b17e6f88d86154e37fc21807a7c7_2_690x296.png)](https://cdn3.ldstatic.com/original/4X/0/1/c/01c5c5e7e6f5b17e6f88d86154e37fc21807a7c7.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/0/1/c/01c5c5e7e6f5b17e6f88d86154e37fc21807a7c7_2_690x296.png)
 
 设置签到功能
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/d/1/9/d19d05f8baade5ab378a7aede3fc00d0743fbc26_2_690x190.png)](https://cdn3.ldstatic.com/original/4X/d/1/9/d19d05f8baade5ab378a7aede3fc00d0743fbc26.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/d/1/9/d19d05f8baade5ab378a7aede3fc00d0743fbc26_2_690x190.png)
 
 设置公告、api信息、支付等等
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/9/8/0/9807c17a53a4b673ae27b910dc9ef3a1d01efc14_2_690x283.png)](https://cdn3.ldstatic.com/original/4X/9/8/0/9807c17a53a4b673ae27b910dc9ef3a1d01efc14.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/9/8/0/9807c17a53a4b673ae27b910dc9ef3a1d01efc14_2_690x283.png)
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-4-29)4、配置令牌
+### 4、配置令牌
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/f/c/8/fc81e0e507c22f149c55887ddacc551ef928c218_2_690x415.png)](https://cdn3.ldstatic.com/original/4X/f/c/8/fc81e0e507c22f149c55887ddacc551ef928c218.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/f/c/8/fc81e0e507c22f149c55887ddacc551ef928c218_2_690x415.png)
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-5cc-switch-30)5、本地连接测试（CC Switch）
+### 5、本地连接测试（CC Switch）
 
 > 配置一下刚才我们复制的秘钥
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/b/1/0/b103b4714b692b363bf12c53368dde71f9e5664b_2_690x460.png)](https://cdn3.ldstatic.com/original/4X/b/1/0/b103b4714b692b363bf12c53368dde71f9e5664b.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/b/1/0/b103b4714b692b363bf12c53368dde71f9e5664b_2_690x460.png)
 
 > 测试一下，没有问题
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/e/1/2/e124b46a15a2ce5b9fd49aec3e1f49586f28e19f_2_690x284.png)](https://cdn3.ldstatic.com/original/4X/e/1/2/e124b46a15a2ce5b9fd49aec3e1f49586f28e19f.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/e/1/2/e124b46a15a2ce5b9fd49aec3e1f49586f28e19f_2_690x284.png)
 
 > 在数据看板中也可以看见使用情况
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/1/9/6/1969c73c25299b0a27b3c61adf401c4d81827bf8_2_690x285.png)](https://cdn3.ldstatic.com/original/4X/1/9/6/1969c73c25299b0a27b3c61adf401c4d81827bf8.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/1/9/6/1969c73c25299b0a27b3c61adf401c4d81827bf8_2_690x285.png)
 
-## [](https://linux.do/t/topic/2140889#p-17651625-h-31)五、域名配置
+## 五、域名配置
 
 > 这里可以很简单的配置一下DNS做映射，但不安全，所以我们这里添加一个项目nginx，用于添加SSL证书
-> 
+>
 > 这里我使用的是**cloudflare**做的代理，所以我按cloudflare讲解，其他的云服务商配置也是大同小异
-> 
+>
 > **如果不想配置nginx和SSL，只想单纯的通过域名解析到IP，直接看第三步：配置DNS解析服务**
-> 
+>
 > 我买的顶级域名为（严格来说这是二级域名，我习惯说这是顶级域名）：wudike.online
-> 
+>
 > 需要创建一个二级域名来映射我的网站：api.wudike.online
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-1-cloudflare-dns-32)1、使用 Cloudflare 的 DNS 代理我们的域名
+### 1、使用 Cloudflare 的 DNS 代理我们的域名
 
 > 这里的域名是我之前买的，在阿里云上的，所以我用阿里云作为演示，各个云服务商的操作都是大同小异的
 
-#### [](https://linux.do/t/topic/2140889#p-17651625-h-1-33)（1、进入域名与网站
+#### （1、进入域名与网站
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/a/4/b/a4b645883170ef54368e71cf03bed177305a7202_2_690x202.png)](https://cdn3.ldstatic.com/original/4X/a/4/b/a4b645883170ef54368e71cf03bed177305a7202.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/a/4/b/a4b645883170ef54368e71cf03bed177305a7202_2_690x202.png)
 
-#### [](https://linux.do/t/topic/2140889#p-17651625-h-2-34)（2、选择域名进行购买
+#### （2、选择域名进行购买
 
 > 查询之后下滑点击购买就可以了
-> 
+>
 > 域名这里买了之后要实名去备份，审核要几个工作日吧，有点忘记了
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/d/d/3/dd32775767e298a8af3ee89251fdac5f04a35e5b_2_690x196.png)](https://cdn3.ldstatic.com/original/4X/d/d/3/dd32775767e298a8af3ee89251fdac5f04a35e5b.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/d/d/3/dd32775767e298a8af3ee89251fdac5f04a35e5b_2_690x196.png)
 
-#### [](https://linux.do/t/topic/2140889#p-17651625-h-3cloudflarecloudflare-35)（3、登录Cloudflare，并交给Cloudflare托管
+#### （3、登录Cloudflare，并交给Cloudflare托管
 
 > ps：Cloudflare右上角人物头像那可以切换语言
 
-##### [](https://linux.do/t/topic/2140889#p-17651625-h-36)①、添加域名
+##### ①、添加域名
 
 > 下面那个我已经注册了，上面已经有服务了，注销在注册太麻烦
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/8/e/6/8e66fa8975e53dd082fe0eb27de04b13dd025ec7_2_690x187.png)](https://cdn3.ldstatic.com/original/4X/8/e/6/8e66fa8975e53dd082fe0eb27de04b13dd025ec7.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/8/e/6/8e66fa8975e53dd082fe0eb27de04b13dd025ec7_2_690x187.png)
 
-##### [](https://linux.do/t/topic/2140889#p-17651625-h-37)②、跟着我的步骤点点就行了
+##### ②、跟着我的步骤点点就行了
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/2/2/2/22293d3e2ee6245636012d6165bcc452378b4183_2_690x378.png)](https://cdn3.ldstatic.com/original/4X/2/2/2/22293d3e2ee6245636012d6165bcc452378b4183.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/2/2/2/22293d3e2ee6245636012d6165bcc452378b4183_2_690x378.png)
 
 > 上面四个步骤结束后我们得到了下面这个页面，需要去我们的云服务商重新配置一下DNS解析
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/8/0/3/803d312f78fcf8336f6c6bd2fef57105a7a5d1f2_2_690x409.png)](https://cdn3.ldstatic.com/original/4X/8/0/3/803d312f78fcf8336f6c6bd2fef57105a7a5d1f2.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/8/0/3/803d312f78fcf8336f6c6bd2fef57105a7a5d1f2_2_690x409.png)
 
-##### [](https://linux.do/t/topic/2140889#p-17651625-h-38)③、我们去阿里云配置一下域名的解析
+##### ③、我们去阿里云配置一下域名的解析
 
 > 进入我们的工作台，点击域名就可以看到我们购买的域名了
-> 
-> [![image](https://cdn3.ldstatic.com/optimized/4X/e/4/e/e4ef819aa65dead9e6788b797ad7e16164622b2e_2_690x200.png)](https://cdn3.ldstatic.com/original/4X/e/4/e/e4ef819aa65dead9e6788b797ad7e16164622b2e.png "image")
+>
+> ![image](https://cdn3.ldstatic.com/optimized/4X/e/4/e/e4ef819aa65dead9e6788b797ad7e16164622b2e_2_690x200.png)
 
 > 进去之后我们就可以修改DNS代理了
-> 
+>
 > 注： 国际域名最少填写2个，最多填写13个，国内域名最多填写6个。
-> 
+>
 > 所以我们两个都要复制哦，把之前的替换掉
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/c/d/0/cd086b0dce8bab5fd62e45680b4cafe8c428861e_2_690x217.png)](https://cdn3.ldstatic.com/original/4X/c/d/0/cd086b0dce8bab5fd62e45680b4cafe8c428861e.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/c/d/0/cd086b0dce8bab5fd62e45680b4cafe8c428861e_2_690x217.png)
 
-##### [](https://linux.do/t/topic/2140889#p-17651625-cloudflare-39)④、回到Cloudflare
+##### ④、回到Cloudflare
 
 > 下拉后，点击我已更新名称服务器
-> 
-> [![image](https://cdn3.ldstatic.com/optimized/4X/9/7/3/973980f9ad7532b95005fbbe132621b33ff14064_2_690x408.png)](https://cdn3.ldstatic.com/original/4X/9/7/3/973980f9ad7532b95005fbbe132621b33ff14064.png "image")
+>
+> ![image](https://cdn3.ldstatic.com/optimized/4X/9/7/3/973980f9ad7532b95005fbbe132621b33ff14064_2_690x408.png)
 
 > 我们等十分钟后刷新一下
-> 
-> [![image](https://cdn3.ldstatic.com/original/4X/7/4/9/749db540c773cb466525ebbc765e2d8a5528b559.png)](https://cdn3.ldstatic.com/original/4X/7/4/9/749db540c773cb466525ebbc765e2d8a5528b559.png "image")
+>
+> ![image](https://cdn3.ldstatic.com/original/4X/7/4/9/749db540c773cb466525ebbc765e2d8a5528b559.png)
 
 > 如果出现这样就代表成功了，由于我已经配置了一个域名，不想再去买一个配置了，下面这张图用的小黄大佬的图，大佬的文章我也贴在最后了
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/5/2/b/52bbd9ec98b6b16e5439926b1efec769c331fa70_2_690x413.png)](https://cdn3.ldstatic.com/original/4X/5/2/b/52bbd9ec98b6b16e5439926b1efec769c331fa70.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/5/2/b/52bbd9ec98b6b16e5439926b1efec769c331fa70_2_690x413.png)
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-2-nginx-40)2、添加 nginx 目录和文件
+### 2、添加 nginx 目录和文件
 
 ```bash
 mkdir -p /opt/proxy/nginx/{ssl,logs,conf.d} && \
@@ -584,7 +587,7 @@ chmod 600 ./nginx/ssl/api.key
     └── logs/                   # Nginx 日志目录
 ```
 
-#### [](https://linux.do/t/topic/2140889#p-17651625-nginxconf-41)nginx.conf
+#### nginx.conf
 
 > 这里不用修改，直接复制粘贴即可
 
@@ -631,7 +634,7 @@ http {
 }
 ```
 
-#### [](https://linux.do/t/topic/2140889#p-17651625-apiconf-42)api.conf
+#### api.conf
 
 > 包含![:warning:](https://cdn.ldstatic.com/images/emoji/twemoji/warning.png?v=15 ":warning:")的参数是需要修改的，包含![:red_question_mark:](https://cdn.ldstatic.com/images/emoji/twemoji/red_question_mark.png?v=15 ":red_question_mark:")的是可修改的，其他的可以照抄
 
@@ -706,48 +709,48 @@ server {
 }
 ```
 
-#### [](https://linux.do/t/topic/2140889#p-17651625-apipem-apikey-43)api.pem 和 api.key
+#### api.pem 和 api.key
 
 > 这里我们去cloudflare 获取
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/5/9/0/5904ae5849cb2fe2104513d93165d2ed8a570ce9_2_690x299.png)](https://cdn3.ldstatic.com/original/4X/5/9/0/5904ae5849cb2fe2104513d93165d2ed8a570ce9.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/5/9/0/5904ae5849cb2fe2104513d93165d2ed8a570ce9_2_690x299.png)
 
 > 创建一个证书
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/2/a/a/2aa61ce6e70b45f66c0f512bb6c6e72ff6f4d217_2_690x315.png)](https://cdn3.ldstatic.com/original/4X/2/a/a/2aa61ce6e70b45f66c0f512bb6c6e72ff6f4d217.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/2/a/a/2aa61ce6e70b45f66c0f512bb6c6e72ff6f4d217_2_690x315.png)
 
 > 输入一下我们要的二级域名，点击创建
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/7/3/a/73a36a72f2153262449df6ca14eb65857957e510_2_690x284.png)](https://cdn3.ldstatic.com/original/4X/7/3/a/73a36a72f2153262449df6ca14eb65857957e510.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/7/3/a/73a36a72f2153262449df6ca14eb65857957e510_2_690x284.png)
 
 > 我们就得到了 api.pem 和 api.key 复制粘贴进去，记得这个页面还有个确认要点
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/f/b/a/fba98a2cabe2927af9811513b7463c365e0c8c70_2_690x297.png)](https://cdn3.ldstatic.com/original/4X/f/b/a/fba98a2cabe2927af9811513b7463c365e0c8c70.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/f/b/a/fba98a2cabe2927af9811513b7463c365e0c8c70_2_690x297.png)
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-3dns-44)3、配置DNS解析服务
+### 3、配置DNS解析服务
 
 > **如果不想配置nginx和SSL，只想单纯的通过域名解析到IP，看下面的文字说明**
-> 
+>
 > 如果不需要CF代理，直接通过dns解析到ip地址 那么关闭代理状态就可以了
-> 
+>
 > 也不需要配置nginx和SSL
-> 
+>
 > 比如我直接用newapi的3000接口
-> 
+>
 > 这里通过api.wudike.online映射到我的ip后
-> 
+>
 > 通过api.wudike.online:3000就可以直接访问到我的newapi项目了
-> 
+>
 > 因为DNS解析需要时间1-10分钟，所以我把DNS的步骤提前了，我们后面的步骤走完就可以直接通过我们的二级域名访问我们的项目了
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/d/8/9/d89434cafe640af28b5ab8c61bad07e44da4a0b7_2_690x252.png)](https://cdn3.ldstatic.com/original/4X/d/8/9/d89434cafe640af28b5ab8c61bad07e44da4a0b7.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/d/8/9/d89434cafe640af28b5ab8c61bad07e44da4a0b7_2_690x252.png)
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-4-45)4、打开防火墙
+### 4、打开防火墙
 
-#### [](https://linux.do/t/topic/2140889#p-17651625-linux-46)Linux 防火墙打开
+#### Linux 防火墙打开
 
 > 上文讲了如何判断防火墙是否启用等等，这里就不过多赘述了
-> 
+>
 > 打开443和80端口，并且重载防火墙
 
 ```bash
@@ -759,7 +762,7 @@ firewall-cmd --permanent --remove-port=3000/tcp && firewall-cmd --reload
 ```
 
 > 查看防火墙是否开放443和80端口：`firewall-cmd --list-ports`
-> 
+>
 > 这个警告不用理会，只是提醒我们服务器上还有个 `docker` zone，但外部访问走 `public` 区域，80/443 已经在正确的区域放行了
 
 ```bash
@@ -771,18 +774,18 @@ You most likely need to use --zone=docker option.
 443/tcp 80/tcp
 ```
 
-#### [](https://linux.do/t/topic/2140889#p-17651625-h-47)服务商打开安全组
+#### 服务商打开安全组
 
 > 在上文中我已经讲解了怎么进入安全组了，这里就不过多赘述了，记得把之前的3000端口给关闭掉，虽然我们通过linux防火墙已经关闭了，但怎么安全怎么来
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/9/c/5/9c5de8496b72f64de2a1c482754c9fa393819c2c_2_689x338.png)](https://cdn3.ldstatic.com/original/4X/9/c/5/9c5de8496b72f64de2a1c482754c9fa393819c2c.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/9/c/5/9c5de8496b72f64de2a1c482754c9fa393819c2c_2_689x338.png)
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-5docker-composenginx-48)5、修改docker compose文件，添加nginx
+### 5、修改docker compose文件，添加nginx
 
 > 该文件内容是完整的，但里面参数也需要修改一下
-> 
+>
 > 现在new-api不直接对外提供服务，只能内网访问，后面通过nginx反向代理到443端口，对外提供服务
-> 
+>
 > 包含![:warning:](https://cdn.ldstatic.com/images/emoji/twemoji/warning.png?v=15 ":warning:")的参数是需要修改的，包含![:red_question_mark:](https://cdn.ldstatic.com/images/emoji/twemoji/red_question_mark.png?v=15 ":red_question_mark:")的是可修改的，其他的可以照抄
 
 ```yaml
@@ -914,27 +917,27 @@ networks:
     driver: bridge
 ```
 
-### [](https://linux.do/t/topic/2140889#p-17651625-h-6docker-compose-49)6、启动我们的docker compose
+### 6、启动我们的docker compose
 
 > 之前也讲过怎么关闭与启动这里就放几个命令
-> 
+>
 > 关闭：`docker compose down`
-> 
+>
 > 启动：`docker compose up -d`
-> 
+>
 > 启动完成后就可以访问我们的二级域名转到我们的项目了
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/f/8/8/f88db5032a3c5c6758105454da872604a7f18785_2_690x357.jpeg)](https://cdn3.ldstatic.com/original/4X/f/8/8/f88db5032a3c5c6758105454da872604a7f18785.jpeg "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/f/8/8/f88db5032a3c5c6758105454da872604a7f18785_2_690x357.jpeg)
 
 > 并且通过了CF的代理，DNS也不是直接转向我们机器的ip，这样就大大滴安全了（并不）
 
-[![image](https://cdn3.ldstatic.com/original/4X/d/5/6/d56a5f7a7c698993b4178168ca3d2b425a7832bf.png)](https://cdn3.ldstatic.com/original/4X/d/5/6/d56a5f7a7c698993b4178168ca3d2b425a7832bf.png "image")
+![image](https://cdn3.ldstatic.com/original/4X/d/5/6/d56a5f7a7c698993b4178168ca3d2b425a7832bf.png)
 
 > 测试我们最关心的 反代问题，没问题，文章完结撒花![:cherry_blossom:](https://cdn.ldstatic.com/images/emoji/twemoji/cherry_blossom.png?v=15 ":cherry_blossom:")
 
-[![image](https://cdn3.ldstatic.com/optimized/4X/7/a/1/7a10aea538ed8858555e7556711c57568b4d4c1b_2_690x437.png)](https://cdn3.ldstatic.com/original/4X/7/a/1/7a10aea538ed8858555e7556711c57568b4d4c1b.png "image")
+![image](https://cdn3.ldstatic.com/optimized/4X/7/a/1/7a10aea538ed8858555e7556711c57568b4d4c1b_2_690x437.png)
 
-## [](https://linux.do/t/topic/2140889#p-17651625-h-50)参考文章
+## 参考文章
 
 [全平台 Docker 部署 CPA(CLIProxyAPI Plus) 灵活定制指南 (Linux/Windows)——接入Codex - 掘金](https://juejin.cn/post/7617781226364092450#heading-8)
 
