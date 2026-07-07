@@ -36,9 +36,45 @@ export default function rehypeFigure() {
 
 			// 获取 alt 属性
 			const alt = imgProps.alt;
+			const src = typeof imgProps.src === "string" ? imgProps.src : "";
+			const altText = typeof alt === "string" ? alt.trim() : "";
+			const isTwemojiImage =
+				src.includes("/images/emoji/twemoji/") ||
+				src.includes("/emoji/twemoji/") ||
+				/^:[a-z0-9_+-]+:$/i.test(altText);
+
+			// MarkDownload 会把论坛里的 emoji/小方块复制成图片。
+			// 这些应该保持行内显示，不能被转换成大图和图注。
+			if (isTwemojiImage) {
+				const rawClassName = imgProps.className;
+				const classNames = Array.isArray(rawClassName)
+					? rawClassName
+					: typeof rawClassName === "string"
+						? rawClassName.split(/\s+/).filter(Boolean)
+						: [];
+				if (!classNames.includes("inline-emoji")) {
+					classNames.push("inline-emoji");
+				}
+				imgProps.className = classNames;
+				imgProps.loading = imgProps.loading || "lazy";
+				imgProps.style = [
+					typeof imgProps.style === "string" ? imgProps.style : "",
+					"display:inline-block",
+					"width:1em",
+					"height:1em",
+					"vertical-align:-0.125em",
+					"margin:0 .15em",
+					"object-fit:contain",
+					"border-radius:0",
+				]
+					.filter(Boolean)
+					.join(";");
+				node.properties = imgProps;
+				return;
+			}
 
 			// 如果没有 alt 属性或 alt 为空字符串，则只更新属性并保持原样
-			if (!alt || alt.trim() === "") {
+			if (!altText) {
 				node.properties = imgProps;
 				return;
 			}
