@@ -2,6 +2,58 @@ import { h } from "hastscript";
 import { visit } from "unist-util-visit";
 import { shouldAddNoReferrer } from "../utils/image-utils.ts";
 
+const forumStickerAltPattern =
+	/^:?(?:bili|tieba|aru|blob|blobcat|doge|huaji|linuxdo|parrot|qq|telegram|tg|weibo)_[a-z0-9]+:?$/i;
+
+function isCopiedInlineEmoji(src, altText) {
+	return (
+		src.includes("/images/emoji/twemoji/") ||
+		src.includes("/emoji/twemoji/") ||
+		/^:[a-z0-9_+-]+:$/i.test(altText) ||
+		(/ldstatic\.com/i.test(src) && forumStickerAltPattern.test(altText))
+	);
+}
+
+function applyInlineEmojiProps(imgProps) {
+	const rawClassName = imgProps.className;
+	const classNames = Array.isArray(rawClassName)
+		? rawClassName
+		: typeof rawClassName === "string"
+			? rawClassName.split(/\s+/).filter(Boolean)
+			: [];
+	if (!classNames.includes("inline-emoji")) {
+		classNames.push("inline-emoji");
+	}
+	imgProps.className = classNames;
+	imgProps.loading = imgProps.loading || "lazy";
+	imgProps.style = [
+		typeof imgProps.style === "string" ? imgProps.style : "",
+		"display:inline-block",
+		"width:1em",
+		"height:1em",
+		"vertical-align:-0.125em",
+		"margin:0 .15em",
+		"object-fit:contain",
+		"border-radius:0",
+	]
+		.filter(Boolean)
+		.join(";");
+	return imgProps;
+}
+
+function getText(node) {
+	if (!node) {
+		return "";
+	}
+	if (node.type === "text") {
+		return node.value || "";
+	}
+	if (!Array.isArray(node.children)) {
+		return "";
+	}
+	return node.children.map(getText).join("");
+}
+
 /**
  * 将带有 alt 文本的图片转换为包含 figcaption 的 figure 元素的 rehype 插件
  *
@@ -38,38 +90,11 @@ export default function rehypeFigure() {
 			const alt = imgProps.alt;
 			const src = typeof imgProps.src === "string" ? imgProps.src : "";
 			const altText = typeof alt === "string" ? alt.trim() : "";
-			const isTwemojiImage =
-				src.includes("/images/emoji/twemoji/") ||
-				src.includes("/emoji/twemoji/") ||
-				/^:[a-z0-9_+-]+:$/i.test(altText);
 
 			// MarkDownload 会把论坛里的 emoji/小方块复制成图片。
 			// 这些应该保持行内显示，不能被转换成大图和图注。
-			if (isTwemojiImage) {
-				const rawClassName = imgProps.className;
-				const classNames = Array.isArray(rawClassName)
-					? rawClassName
-					: typeof rawClassName === "string"
-						? rawClassName.split(/\s+/).filter(Boolean)
-						: [];
-				if (!classNames.includes("inline-emoji")) {
-					classNames.push("inline-emoji");
-				}
-				imgProps.className = classNames;
-				imgProps.loading = imgProps.loading || "lazy";
-				imgProps.style = [
-					typeof imgProps.style === "string" ? imgProps.style : "",
-					"display:inline-block",
-					"width:1em",
-					"height:1em",
-					"vertical-align:-0.125em",
-					"margin:0 .15em",
-					"object-fit:contain",
-					"border-radius:0",
-				]
-					.filter(Boolean)
-					.join(";");
-				node.properties = imgProps;
+			if (isCopiedInlineEmoji(src, altText)) {
+				node.properties = applyInlineEmojiProps(imgProps);
 				return;
 			}
 
@@ -94,6 +119,45 @@ export default function rehypeFigure() {
 			// 替换当前的 img 节点为 figure 节点
 			if (parent && typeof index === "number") {
 				parent.children[index] = centerFigure;
+			}
+		});
+
+		// 兜底处理：少数 MarkDownload 生成的半坏链接会先被包成 figure，
+		// 这里再把论坛表情图从 figure 还原为行内 img。
+		visit(tree, "element", (node, index, parent) => {
+			if (node.tagName !== "center" && node.tagName !== "figure") {
+				return;
+			}
+
+			const figure =
+				node.tagName === "figure"
+					? node
+					: node.children?.find((child) => child.type === "element" && child.tagName === "figure");
+			if (!figure) {
+				return;
+			}
+
+			const img = figure.children?.find((child) => child.type === "element" && child.tagName === "img");
+			const caption = figure.children?.find(
+				(child) => child.type === "element" && child.tagName === "figcaption",
+			);
+			if (!img || !caption) {
+				return;
+			}
+
+			const imgProps = { ...img.properties };
+			const src = typeof imgProps.src === "string" ? imgProps.src : "";
+			const altText =
+				typeof imgProps.alt === "string" && imgProps.alt.trim()
+					? imgProps.alt.trim()
+					: getText(caption).trim();
+			if (!isCopiedInlineEmoji(src, altText)) {
+				return;
+			}
+
+			img.properties = applyInlineEmojiProps(imgProps);
+			if (parent && typeof index === "number") {
+				parent.children[index] = img;
 			}
 		});
 	};

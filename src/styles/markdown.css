@@ -152,6 +152,30 @@
 
 
 .custom-md {
+  center:has(figure img[alt^="bili_"], figure img[alt^="tieba_"], figure img[alt^="aru_"], figure img[alt^="blob_"], figure img[alt^="blobcat_"], figure img[alt^="doge_"], figure img[alt^="huaji_"], figure img[alt^="linuxdo_"], figure img[alt^="parrot_"], figure img[alt^="qq_"], figure img[alt^="telegram_"], figure img[alt^="tg_"], figure img[alt^="weibo_"]) {
+    display: inline;
+  }
+
+  center:has(figure img[alt^="bili_"], figure img[alt^="tieba_"], figure img[alt^="aru_"], figure img[alt^="blob_"], figure img[alt^="blobcat_"], figure img[alt^="doge_"], figure img[alt^="huaji_"], figure img[alt^="linuxdo_"], figure img[alt^="parrot_"], figure img[alt^="qq_"], figure img[alt^="telegram_"], figure img[alt^="tg_"], figure img[alt^="weibo_"]) figure {
+    display: inline;
+    margin: 0;
+    padding: 0;
+  }
+
+  center:has(figure img[alt^="bili_"], figure img[alt^="tieba_"], figure img[alt^="aru_"], figure img[alt^="blob_"], figure img[alt^="blobcat_"], figure img[alt^="doge_"], figure img[alt^="huaji_"], figure img[alt^="linuxdo_"], figure img[alt^="parrot_"], figure img[alt^="qq_"], figure img[alt^="telegram_"], figure img[alt^="tg_"], figure img[alt^="weibo_"]) img {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin: 0 .15em;
+    object-fit: contain;
+    vertical-align: -0.125em;
+    border-radius: 0;
+  }
+
+  center:has(figure img[alt^="bili_"], figure img[alt^="tieba_"], figure img[alt^="aru_"], figure img[alt^="blob_"], figure img[alt^="blobcat_"], figure img[alt^="doge_"], figure img[alt^="huaji_"], figure img[alt^="linuxdo_"], figure img[alt^="parrot_"], figure img[alt^="qq_"], figure img[alt^="telegram_"], figure img[alt^="tg_"], figure img[alt^="weibo_"]) figcaption {
+    display: none;
+  }
+
   table {
     @apply my-4;
     min-width: 100%;
@@ -213,4 +237,3 @@ body.wallpaper-transparent .custom-md {
     background-color: color-mix(in oklch, var(--btn-plain-bg-active) 68%, transparent);
   }
 }
-
