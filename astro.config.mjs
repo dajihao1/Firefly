@@ -30,6 +30,7 @@ import I18nKey from "./src/i18n/i18nKey";
 import { i18n } from "./src/i18n/translation";
 import { fontProviders } from "astro/config";
 import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.mjs";
+import rehypeCleanMarkDownload from "./src/plugins/rehype-clean-markdownload.mjs";
 import rehypeEmailProtection from "./src/plugins/rehype-email-protection.mjs";
 import rehypeExternalLinks from "./src/plugins/rehype-external-links.mjs";
 import rehypeFigure from "./src/plugins/rehype-figure.mjs";
@@ -250,6 +251,7 @@ export default defineConfig({
 				rehypePlantuml,
 				rehypeFigure,
 				[rehypeExternalLinks, { siteUrl: siteConfig.site_url }],
+				rehypeCleanMarkDownload,
 				[rehypeEmailProtection, { method: "base64" }], // 邮箱保护插件，支持 'base64' 或 'rot13'
 				[
 					rehypeComponents,

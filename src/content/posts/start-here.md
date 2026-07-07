@@ -19,7 +19,6 @@ description: >-
 
   Nginx：latest（1.29.8）
 
-
   本教程需要的工具：
 
   FinalShell：SSH远程连接工具
@@ -137,48 +136,48 @@ mkdir -p /opt/proxy/{cpa/{logs,auths},newapi/{data,logs}} && cd /opt/proxy && to
 > 包含![:warning:](https://cdn.ldstatic.com/images/emoji/twemoji/warning.png?v=15 ":warning:")的参数是需要修改的，包含![:red_question_mark:](https://cdn.ldstatic.com/images/emoji/twemoji/red_question_mark.png?v=15 ":red_question_mark:")的是可修改的，其他的可以照抄
 
 ```yaml
-# 服务器绑定主机/接口，默认空字符串同时绑定 IPv4/IPv6  
-# 使用 "127.0.0.1" 或 "localhost" 可限制仅本机访问  
+# 服务器绑定主机/接口，默认空字符串同时绑定 IPv4/IPv6
+# 使用 "127.0.0.1" 或 "localhost" 可限制仅本机访问
 host: ""  
-# 服务器端口  
+# 服务器端口
 port: 8317  
 tls:  
-# 是否启用 HTTPS    
+# 是否启用 HTTPS
   enable: false  
-# 管理 API 设置    
+# 管理 API 设置
 remote-management:  
-# 是否允许远程（非 localhost）访问管理接口。  
-# 为 false 时仅允许 localhost，仍需管理密钥。  
+# 是否允许远程（非 localhost）访问管理接口。
+# 为 false 时仅允许 localhost，仍需管理密钥。
   allow-remote: true  
-# 管理密钥。若填写明文，启动时会自动哈希后生效。  
-# 所有管理请求（包括本地）都需要该密钥。  
-# 留空则完全禁用管理 API（所有 /v0/management 路由返回 404）。  
+# 管理密钥。若填写明文，启动时会自动哈希后生效。
+# 所有管理请求（包括本地）都需要该密钥。
+# 留空则完全禁用管理 API（所有 /v0/management 路由返回 404）。
   secret-key: "$2a$10$5dHykttqHWAU.WcYFg0qgOXhDoxC1P7wpZ7i2T8Kj9xqwvVRfTUm2"    # ⚠️ 请修改密码
-# true 时禁用内置管理面板资源与路由。 默认 false  
+# true 时禁用内置管理面板资源与路由。 默认 false
   disable-control-panel: false  
-# 认证目录（支持 ~ 展开为主目录）  
+# 认证目录（支持 ~ 展开为主目录）
 auth-dir: "~/.cli-proxy-api"  
-# apikeys 自己设置  
+# apikeys 自己设置
 api-keys:  
   - sk-8SGCShq021BAFgpBE  # ⚠️ 请修改秘钥
-# 调试日志。 默认 false  
+# 调试日志。 默认 false
 debug: true  
-# 写入滚动日志文件而非 stdout。 默认false  
+# 写入滚动日志文件而非 stdout。 默认false
 logging-to-file: true  
-# 日志目录大小上限，0 表示不限制。  
+# 日志目录大小上限，0 表示不限制。
 logs-max-total-size-mb: 100  
-# 403/408/500/502/503/504 时的重试次数。  
+# 403/408/500/502/503/504 时的重试次数。
 request-retry: 3  
-# 冷却凭据等待秒数上限，超出即触发重试。  
+# 冷却凭据等待秒数上限，超出即触发重试。
 max-retry-interval: 30  
 routing:  
-# 多匹配凭据的选择策略：round-robin 或 fill-first。 默认round-robin  
+# 多匹配凭据的选择策略：round-robin 或 fill-first。 默认round-robin
   strategy: "round-robin"  
-# 是否为 /v1/ws 启用认证。 默认false  
+# 是否为 /v1/ws 启用认证。 默认false
 ws-auth: false  
-# 为 false 时禁用内存用量统计聚合，默认false  
-# 1.10版本后失效，我这里用的最新版本，并且后续通过newapi统计，这里false即可  
-# ❓ 如果选择cpa对外的话，并且参照我之前的文章，需要监控token消耗，这里可以改为true  
+# 为 false 时禁用内存用量统计聚合，默认false
+# 1.10版本后失效，我这里用的最新版本，并且后续通过newapi统计，这里false即可
+# ❓ 如果选择cpa对外的话，并且参照我之前的文章，需要监控token消耗，这里可以改为true
 usage-statistics-enabled: false
 ```
 
@@ -187,50 +186,50 @@ usage-statistics-enabled: false
 > 包含![:warning:](https://cdn.ldstatic.com/images/emoji/twemoji/warning.png?v=15 ":warning:")的参数是需要修改的，包含![:red_question_mark:](https://cdn.ldstatic.com/images/emoji/twemoji/red_question_mark.png?v=15 ":red_question_mark:")的是可修改的，其他的可以照抄
 
 ```yaml
-# newapi docker-compose 配置参考：  
-# https://docs.newapi.ai/zh/docs/installation/config-maintenance/docker-compose-yml  
-# 启动的全部服务  
+# newapi docker-compose 配置参考：
+# https://docs.newapi.ai/zh/docs/installation/config-maintenance/docker-compose-yml
+# 启动的全部服务
 services:
-# 服务名  
+# 服务名
   new-api:
-# 镜像名  
+# 镜像名
     image: calciumion/new-api:latest
-# 容器名  
+# 容器名
     container_name: new-api
-# 退出时总是自动重启，确保服务意外挂掉后能恢复。  
+# 退出时总是自动重启，确保服务意外挂掉后能恢复。
     restart: always
 # 启动容器后，会执行这个自定义命令，它将应用的日志目录设置为 /app/logs
     command: --log-dir /app/logs
 # 端口映射
     ports:  
       - '3000:3000'  # ❓注意后面的3000不能修改，不然后面的healthcheck心跳检测，检测不到  
-# 卷挂载  
+# 卷挂载
     volumes:  
       - ./newapi/data:/data  
       - ./newapi/logs:/app/logs  
-# 环境变量  
+# 环境变量
     environment:  
       - SQL_DSN=postgresql://root:123456@postgres:5432/new-api # ⚠️ 请修改密码  
-#      - SQL_DSN=root:123456@tcp(mysql:3306)/new-api  # 如果用mysql的话，取消这条注释，并注释上面那条  
+#      - SQL_DSN=root:123456@tcp(mysql:3306)/new-api # 如果用mysql的话，取消这条注释，并注释上面那条
       - REDIS_CONN_STRING=redis://redis  
-# 设置容器时区为上海  
+# 设置容器时区为上海
       - TZ=Asia/Shanghai  
-# 是否启用错误日志记录  
+# 是否启用错误日志记录
       - ERROR_LOG_ENABLED=true  
-# 是否启用批量更新 batch update enabled  
+# 是否启用批量更新 batch update enabled
       - BATCH_UPDATE_ENABLED=true  
-#      - STREAMING_TIMEOUT=300  # 流模式无响应超时时间，单位秒，默认120秒，如果出现空补全可以尝试改为更大值  
-#      - SESSION_SECRET=random_string  # 多机部署时设置，必须修改这个随机字符串！！  
-#      - SYNC_FREQUENCY=60  # 如果需要定期数据库同步，请取消注释  
-# 定义启动顺序，它会等待 rpa、redis、postgres 容器启动后，再启动  
+#      - STREAMING_TIMEOUT=300 # 流模式无响应超时时间，单位秒，默认120秒，如果出现空补全可以尝试改为更大值
+#      - SESSION_SECRET=random_string # 多机部署时设置，必须修改这个随机字符串！！
+#      - SYNC_FREQUENCY=60 # 如果需要定期数据库同步，请取消注释
+# 定义启动顺序，它会等待 rpa、redis、postgres 容器启动后，再启动
     depends_on:  
       - redis  
       - postgres  
-#      - mysql  # 如果用mysql的话，取消这条注释，并注释上面那条  
+#      - mysql # 如果用mysql的话，取消这条注释，并注释上面那条
       - cpa  
-# 心跳检查，在容器内检查，间隔30s，超时时间10s，重复机制3次  
+# 心跳检查，在容器内检查，间隔30s，超时时间10s，重复机制3次
     healthcheck:  
-# test的内容是向本机（容器内）发送一个请求，如果在响应中找不到success关键字就报错  
+# test的内容是向本机（容器内）发送一个请求，如果在响应中找不到success关键字就报错
       test:  
         [  
           'CMD-SHELL',  
@@ -240,7 +239,7 @@ services:
       timeout: 10s  
       retries: 3  
   
-# 下面的同上，不同的参数我再做解释  
+# 下面的同上，不同的参数我再做解释
   redis:  
     image: redis:latest  
     container_name: redis  
@@ -251,30 +250,30 @@ services:
     container_name: postgres  
     restart: always  
     environment:  
-# 数据库用户名  
+# 数据库用户名
       POSTGRES_USER: root # ❓ 设置用户名，改为你自己的  
-# 数据库密码  
+# 数据库密码
       POSTGRES_PASSWORD: 123456 # ⚠️ 设置密码，改为你自己的  
-# 数据库名  
+# 数据库名
       POSTGRES_DB: new-api  
     volumes:  
       - pg_data:/var/lib/postgresql/data  
-#    ports:  
-#      - "5432:5432"  # 如果这个服务要对外，需要解开这个注释  
+#    ports:
+#      - "5432:5432" # 如果这个服务要对外，需要解开这个注释
   
-#  mysql:  
-#    image: mysql:8.2  
-#    container_name: mysql  
-#    restart: always  
-#    environment:  
-#      MYSQL_ROOT_PASSWORD: 123456  # ⚠️ 设置密码，改为你自己的  
-#      MYSQL_DATABASE: new-api  
-#    volumes:  
-#      - mysql_data:/var/lib/mysql  
-#    ports:  
-#      - "3306:3306"  # 如果这个服务要对外，需要解开这个注释  
+#  mysql:
+#    image: mysql:8.2
+#    container_name: mysql
+#    restart: always
+#    environment:
+#      MYSQL_ROOT_PASSWORD: 123456 # ⚠️ 设置密码，改为你自己的
+#      MYSQL_DATABASE: new-api
+#    volumes:
+#      - mysql_data:/var/lib/mysql
+#    ports:
+#      - "3306:3306" # 如果这个服务要对外，需要解开这个注释
   
-# cpa服务  
+# cpa服务
   cpa:  
     image: eceasy/cli-proxy-api:latest  
     container_name: cpa  
@@ -286,7 +285,7 @@ services:
       - ./cpa/logs:/CLIProxyAPI/logs # 日志文件输出    
     restart: always  
   
-# 顶级挂载，避免文件权限问题，挂载地址：/var/lib/docker/volumes/pg_data  
+# 顶级挂载，避免文件权限问题，挂载地址：/var/lib/docker/volumes/pg_data
 volumes:  
   pg_data:  
 #  mysql_data:
@@ -789,9 +788,9 @@ You most likely need to use --zone=docker option.
 > 包含![:warning:](https://cdn.ldstatic.com/images/emoji/twemoji/warning.png?v=15 ":warning:")的参数是需要修改的，包含![:red_question_mark:](https://cdn.ldstatic.com/images/emoji/twemoji/red_question_mark.png?v=15 ":red_question_mark:")的是可修改的，其他的可以照抄
 
 ```yaml
-# newapi docker-compose 配置参考：  
-# https://docs.newapi.ai/zh/docs/installation/config-maintenance/docker-compose-yml  
-# 启动的全部服务  
+# newapi docker-compose 配置参考：
+# https://docs.newapi.ai/zh/docs/installation/config-maintenance/docker-compose-yml
+# 启动的全部服务
 services:  
   # 服务名  
   new-api:  
@@ -905,15 +904,15 @@ services:
     networks:  
       - newapi-network  
   
-# 顶级挂载，避免文件权限问题，挂载地址：/var/lib/docker/volumes/pg_data  
+# 顶级挂载，避免文件权限问题，挂载地址：/var/lib/docker/volumes/pg_data
 volumes:  
   pg_data:  
-#  mysql_data:  
+#  mysql_data:
   
-# 定义网络（顶级）  
+# 定义网络（顶级）
 networks:  
   newapi-network:  
-# 桥接模式  
+# 桥接模式
     driver: bridge
 ```
 
