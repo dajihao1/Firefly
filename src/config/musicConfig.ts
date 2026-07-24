@@ -55,7 +55,7 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 				url: "/assets/music/grandpa-tea-jay-chou.mp3",
 				cover:
 					"https://api.i-meto.com/meting/api?server=netease&type=pic&id=109951166698447900&auth=c6eeccaf4f4c469ed606bcc60da7e3092f850ff6",
-				lrc: "",
+				lrc: "/assets/music/grandpa-tea-jay-chou.lrc",
 			},
 		],
 	},
