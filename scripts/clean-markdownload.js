@@ -69,6 +69,23 @@ function cleanImageOnlyLine(line) {
 	return `${match[1]}![${alt}](${url}${title ? ` "${title}"` : ""})`;
 }
 
+function cleanInlineEmojiLine(line) {
+	const match = line.match(
+		/^(\s*(?:>\s*)?)!\[(:[a-z0-9_+-]+:)\]\(\[?(https?:\/{1,2}[^\s\])"]+)(?:\s+"([^"]*)")?\)\)?[\uFE0E\uFE0F]?\s*(.*)$/i,
+	);
+	if (!match) {
+		return null;
+	}
+
+	const [, prefix, alt, rawUrl, title = "", text = ""] = match;
+	if (!/\/(?:images\/)?emoji\//i.test(rawUrl)) {
+		return null;
+	}
+
+	const image = `![${alt}](${normalizeUrl(rawUrl)}${title ? ` "${title}"` : ""})`;
+	return `${prefix}${image}${text ? ` ${text}` : ""}`;
+}
+
 function cleanHeadingBody(body) {
 	let cleaned = cleanNestedLinks(body).replace(/\[\]\(\[?https?:\/\/linux\.do\/t\/topic\/[^\)]*\)/gi, "");
 
@@ -98,6 +115,11 @@ function cleanLine(line) {
 	const trimmed = line.trim();
 	if (/^\[?!\[[^\]]*\]\(\[?https?:\/{1,2}cdn\.ldstatic\.com\/(?:user_avatar|letter_avatar)\//i.test(trimmed)) {
 		return "";
+	}
+
+	const emojiLine = cleanInlineEmojiLine(line);
+	if (emojiLine !== null) {
+		return emojiLine;
 	}
 
 	const imageLine = cleanImageOnlyLine(line);
