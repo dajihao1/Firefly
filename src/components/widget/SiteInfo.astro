@@ -9,7 +9,6 @@ import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import type { WidgetComponentConfig } from "@/types/config";
 import { detectBuildPlatform } from "@/utils/build-platform";
-import { formatDateI18nWithTime } from "@/utils/date-utils";
 
 interface Props {
 	class?: string;
@@ -51,8 +50,8 @@ if (pnpmMatch) {
 	pnpmVersion = `v${pnpmMatch[1]}`;
 }
 
-// 构建时间
-const buildTime = formatDateI18nWithTime(new Date());
+// 个人站点不展示每次部署的精确时间，固定显示建站年份。
+const buildTime = "2025年";
 
 // 构建平台检测（使用 ci-info 自动识别 CI 环境）
 const unknownBuildPlatform =
