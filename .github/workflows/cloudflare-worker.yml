@@ -52,13 +52,25 @@ jobs:
         run: pnpm exec wrangler d1 execute "$CLOUDFLARE_D1_DATABASE_ID" --remote --file=migrations/0001_create_visit_logs.sql
 
       - name: Deploy to Cloudflare
+        id: deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
+          set -o pipefail
           if [ -n "$VISIT_LOGS_ADMIN_PASSWORD" ]; then
             printf 'VISIT_LOGS_ADMIN_PASSWORD=%s\n' "$VISIT_LOGS_ADMIN_PASSWORD" > .worker.secrets.env
-            pnpm exec wrangler deploy src/worker.ts --config wrangler.deploy.json --no-autoconfig --secrets-file .worker.secrets.env
+            pnpm exec wrangler deploy src/worker.ts --config wrangler.deploy.json --no-autoconfig --secrets-file .worker.secrets.env 2>&1 | tee deploy-output.txt
           else
-            pnpm exec wrangler deploy src/worker.ts --config wrangler.deploy.json --no-autoconfig
+            pnpm exec wrangler deploy src/worker.ts --config wrangler.deploy.json --no-autoconfig 2>&1 | tee deploy-output.txt
           fi
+
+          version_id="$(sed -n 's/.*Current Version ID: \([0-9a-f-]*\).*/\1/p' deploy-output.txt | tail -n 1)"
+          test -n "$version_id"
+          echo "version_id=$version_id" >> "$GITHUB_OUTPUT"
+
+      - name: Send all traffic to the deployed Worker version
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm exec wrangler versions deploy "${{ steps.deploy.outputs.version_id }}@100%" --name firefly --yes
