@@ -9,16 +9,11 @@ if (!databaseId) {
 const config = JSON.parse(fs.readFileSync("wrangler.jsonc", "utf8"));
 
 config.main = "src/worker.ts";
-config.routes = [
-	{
-		pattern: "www.8228122.com/api/*",
-		zone_name: "8228122.com",
-	},
-	...config.routes,
-];
 config.assets = {
 	...config.assets,
 	binding: "ASSETS",
+	// API requests must bypass the static asset layer so the Worker can handle them.
+	run_worker_first: ["/api/*"],
 };
 config.d1_databases = [
 	{
