@@ -1,0 +1,24 @@
+<script is:inline data-swup-ignore-script>
+	(function () {
+		var lastPath = "";
+
+		function recordVisit() {
+			var path = window.location.pathname;
+			if (path === lastPath || path.indexOf("/api/") === 0) return;
+			lastPath = path;
+
+			fetch("/api/visit", {
+				method: "POST",
+				body: path,
+				credentials: "omit",
+				headers: { "Content-Type": "text/plain;charset=UTF-8" },
+				keepalive: true,
+			}).catch(function () {
+				// Visit logging must never interfere with viewing the site.
+			});
+		}
+
+		recordVisit();
+		document.addEventListener("swup:contentReplaced", recordVisit);
+	})();
+</script>

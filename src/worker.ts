@@ -66,31 +66,12 @@ function localizeCountry(countryCode: string | null | undefined): string | null 
 	}
 }
 
-function isPageVisit(request: Request): boolean {
-	if (request.method !== "GET") {
-		return false;
-	}
-
-	// Ignore browser prefetches and asset requests. One page view becomes one log row.
-	if (request.headers.get("purpose")?.toLowerCase() === "prefetch") {
-		return false;
-	}
-
-	const destination = request.headers.get("sec-fetch-dest");
-	if (destination && destination !== "document") {
-		return false;
-	}
-
-	return request.headers.get("accept")?.includes("text/html") ?? false;
-}
-
-async function recordVisit(request: RequestWithCloudflareData, env: Env): Promise<void> {
+async function recordVisit(request: RequestWithCloudflareData, path: string, env: Env): Promise<void> {
 	const ip = request.headers.get("CF-Connecting-IP");
 	if (!ip) {
 		return;
 	}
 
-	const path = new URL(request.url).pathname;
 	const country = localizeCountry(request.cf?.country);
 	const region = request.cf?.region ?? null;
 	const city = request.cf?.city ?? null;
@@ -101,6 +82,25 @@ async function recordVisit(request: RequestWithCloudflareData, env: Env): Promis
 	)
 		.bind(ip, Date.now(), path, country, region, city, location)
 		.run();
+}
+
+async function recordClientVisit(request: Request, env: Env, ctx: WorkerContext): Promise<Response> {
+	if (request.method !== "POST") {
+		return jsonResponse({ error: "Method not allowed" }, 405, { Allow: "POST" });
+	}
+
+	const siteOrigin = new URL(request.url).origin;
+	if (request.headers.get("Origin") !== siteOrigin) {
+		return jsonResponse({ error: "Invalid origin" }, 403);
+	}
+
+	const path = (await request.text()).trim();
+	if (!/^\/[\w./-]*$/.test(path) || path.startsWith("/api/") || path.length > 512) {
+		return jsonResponse({ error: "Invalid path" }, 400);
+	}
+
+	ctx.waitUntil(recordVisit(request as RequestWithCloudflareData, path, env));
+	return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });
 }
 
 async function deleteExpiredVisits(env: Env): Promise<void> {
@@ -277,10 +277,8 @@ export default {
 		if (pathname === "/api/admin/visit-logs") {
 			return getVisitLogs(request, env);
 		}
-
-		if (isPageVisit(request)) {
-			// Logging runs after the response starts so a database failure never delays the blog.
-			ctx.waitUntil(recordVisit(request as RequestWithCloudflareData, env));
+		if (pathname === "/api/visit") {
+			return recordClientVisit(request, env, ctx);
 		}
 
 		return env.ASSETS.fetch(request);
