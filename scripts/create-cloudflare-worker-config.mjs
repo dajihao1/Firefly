@@ -12,8 +12,8 @@ config.main = "src/worker.ts";
 config.assets = {
 	...config.assets,
 	binding: "ASSETS",
-	// Keep the public site static while ensuring private API requests reach the Worker.
-	run_worker_first: ["/api/*"],
+	// Page requests must reach the Worker so it can record visits before serving assets.
+	run_worker_first: true,
 };
 config.d1_databases = [
 	{
