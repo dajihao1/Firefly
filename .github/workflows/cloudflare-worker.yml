@@ -58,7 +58,7 @@ jobs:
         run: |
           if [ -n "$VISIT_LOGS_ADMIN_PASSWORD" ]; then
             printf 'VISIT_LOGS_ADMIN_PASSWORD=%s\n' "$VISIT_LOGS_ADMIN_PASSWORD" > .worker.secrets.env
-            pnpm exec wrangler deploy --config wrangler.deploy.json --secrets-file .worker.secrets.env
+            pnpm exec wrangler deploy src/worker.ts --config wrangler.deploy.json --no-autoconfig --secrets-file .worker.secrets.env
           else
-            pnpm exec wrangler deploy --config wrangler.deploy.json
+            pnpm exec wrangler deploy src/worker.ts --config wrangler.deploy.json --no-autoconfig
           fi
