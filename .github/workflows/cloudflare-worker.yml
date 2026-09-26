@@ -51,15 +51,16 @@ jobs:
           CLOUDFLARE_D1_DATABASE_ID: ${{ secrets.CLOUDFLARE_D1_DATABASE_ID }}
         run: pnpm exec wrangler d1 execute "$CLOUDFLARE_D1_DATABASE_ID" --remote --file=migrations/0001_create_visit_logs.sql
 
+      - name: Deploy to Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm exec wrangler deploy --config wrangler.deploy.json
+
+      # Deploy can replace Worker bindings, so write the password secret last.
       - name: Sync visit log dashboard password
         if: env.VISIT_LOGS_ADMIN_PASSWORD != ''
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: printf '%s' "$VISIT_LOGS_ADMIN_PASSWORD" | pnpm exec wrangler secret put VISIT_LOGS_ADMIN_PASSWORD --config wrangler.deploy.json
-
-      - name: Deploy to Cloudflare
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: pnpm exec wrangler deploy --config wrangler.deploy.json
