@@ -7,7 +7,7 @@ const pagesCmsUrl = "https://app.pagescms.org/";
 const postsUrl = `${repoUrl}/tree/master/src/content/posts`;
 const configUrl = `${repoUrl}/tree/master/src/config`;
 const deploymentsUrl = "https://dash.cloudflare.com/";
-const passwordHash = "36de60e127f9ae883989aa7721cc3ebb2d29d5499861cbe09bd5288c6b614225";
+const visitLogsUrl = "/admin/visit-logs/";
 ---
 
 <MainGridLayout title={title} description="管理文章、资料与站点配置的入口">
@@ -30,8 +30,13 @@ const passwordHash = "36de60e127f9ae883989aa7721cc3ebb2d29d5499861cbe09bd5288c6b
 		</div>
 
 		<div id="admin-content" class="max-w-3xl hidden">
-			<p class="text-sm font-semibold text-(--primary) mb-3">Admin</p>
-			<h1 class="text-3xl font-bold mb-4">后台管理</h1>
+			<div class="flex items-start justify-between gap-4 mb-4">
+				<div>
+					<p class="text-sm font-semibold text-(--primary) mb-3">Admin</p>
+					<h1 class="text-3xl font-bold">后台管理</h1>
+				</div>
+				<button id="admin-lock-button" class="admin-lock-button" type="button">锁定后台</button>
+			</div>
 			<p class="text-75 leading-7 mb-6">
 				当前站点是静态博客，内容来自 GitHub 仓库。我已经为 Pages CMS 准备了配置文件；登录后选择 dajihao1/Firefly 仓库，就可以用浏览器编辑收藏文章，并以代码方式修改头像、公告、简介和导航。
 			</p>
@@ -57,48 +62,76 @@ const passwordHash = "36de60e127f9ae883989aa7721cc3ebb2d29d5499861cbe09bd5288c6b
 					<span class="btn-title">Cloudflare</span>
 					<span class="btn-desc">查看部署状态、域名绑定和访问控制</span>
 				</a>
+				<a class="btn-card" href={visitLogsUrl}>
+					<span class="btn-title">访问记录</span>
+					<span class="btn-desc">查看访客 IP、归属地、访问时间和页面</span>
+				</a>
 			</div>
 		</div>
 	</section>
 </MainGridLayout>
 
-<script define:vars={{ passwordHash }}>
-	const unlockKey = "daji-admin-unlocked";
+<script>
 	const lock = document.getElementById("admin-lock");
 	const content = document.getElementById("admin-content");
 	const form = document.getElementById("admin-lock-form");
 	const input = document.getElementById("admin-password");
 	const error = document.getElementById("admin-lock-error");
+	const lockButton = document.getElementById("admin-lock-button");
 
 	function showAdmin() {
 		lock?.classList.add("hidden");
 		content?.classList.remove("hidden");
 	}
 
-	async function sha256(value) {
-		const data = new TextEncoder().encode(value);
-		const digest = await crypto.subtle.digest("SHA-256", data);
-		return Array.from(new Uint8Array(digest))
-			.map((byte) => byte.toString(16).padStart(2, "0"))
-			.join("");
+	function showLock() {
+		content?.classList.add("hidden");
+		lock?.classList.remove("hidden");
 	}
 
-	if (sessionStorage.getItem(unlockKey) === "true") {
+	async function hasValidSession() {
+		try {
+			const response = await fetch("/api/admin/session", { credentials: "same-origin" });
+			return response.ok;
+		} catch {
+			return false;
+		}
+	}
+
+	if (await hasValidSession()) {
 		showAdmin();
 	}
 
 	form?.addEventListener("submit", async (event) => {
 		event.preventDefault();
 		const value = input instanceof HTMLInputElement ? input.value : "";
-		if ((await sha256(value)) === passwordHash) {
-			sessionStorage.setItem(unlockKey, "true");
+		error?.classList.add("hidden");
+		try {
+			const response = await fetch("/api/admin/session", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				credentials: "same-origin",
+				body: JSON.stringify({ password: value }),
+			});
+			if (!response.ok) throw new Error("Invalid password");
+
+			if (input instanceof HTMLInputElement) input.value = "";
 			showAdmin();
-			return;
+		} catch {
+			error?.classList.remove("hidden");
+			if (input instanceof HTMLInputElement) {
+				input.value = "";
+				input.focus();
+			}
 		}
-		error?.classList.remove("hidden");
-		if (input instanceof HTMLInputElement) {
-			input.value = "";
-			input.focus();
+	});
+
+	lockButton?.addEventListener("click", async () => {
+		try {
+			await fetch("/api/admin/session", { method: "DELETE", credentials: "same-origin" });
+		} finally {
+			showLock();
+			if (input instanceof HTMLInputElement) input.focus();
 		}
 	});
 </script>
@@ -147,6 +180,21 @@ const passwordHash = "36de60e127f9ae883989aa7721cc3ebb2d29d5499861cbe09bd5288c6b
 
 	.lock-button:hover {
 		transform: translateY(-1px);
+	}
+
+	.admin-lock-button {
+		border: 1px solid color-mix(in oklab, var(--primary) 30%, transparent);
+		border-radius: var(--radius-large);
+		color: var(--content-meta);
+		font-size: 0.875rem;
+		font-weight: 700;
+		padding: 0.65rem 0.85rem;
+		transition: 0.2s ease;
+	}
+
+	.admin-lock-button:hover {
+		border-color: var(--primary);
+		color: var(--primary);
 	}
 
 	.lock-error {

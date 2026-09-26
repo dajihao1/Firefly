@@ -1,0 +1,257 @@
+---
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+const title = "访问记录";
+---
+
+<MainGridLayout title={title} description="查看最近访问站点的页面记录">
+	<section class="card-base px-5 py-6 md:px-8 md:py-7">
+		<div id="login-panel" class="max-w-xl">
+			<p class="text-sm font-semibold text-(--primary) mb-3">Private</p>
+			<h1 class="text-3xl font-bold mb-3">访问记录</h1>
+			<p class="text-75 leading-7 mb-6">使用后台管理密码解锁后，可查看最近 200 条页面访问记录。</p>
+
+			<form id="login-form" class="login-form">
+				<label class="login-label" for="visit-log-password">管理密码</label>
+				<div class="login-row">
+					<input id="visit-log-password" class="login-input" type="password" autocomplete="current-password" placeholder="请输入管理密码" required />
+					<button class="login-button" type="submit">查看记录</button>
+				</div>
+				<p id="login-error" class="login-error hidden">密码不正确或访问记录尚未配置。</p>
+			</form>
+		</div>
+
+		<div id="logs-panel" class="hidden">
+			<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+				<div>
+					<p class="text-sm font-semibold text-(--primary) mb-1">Private</p>
+					<h1 class="text-3xl font-bold">访问记录</h1>
+				</div>
+				<button id="refresh-logs" class="refresh-button" type="button">刷新记录</button>
+			</div>
+
+			<p id="log-status" class="text-sm text-75 mb-4">正在读取记录...</p>
+			<div class="overflow-x-auto rounded-xl border border-(--line-divider)">
+				<table class="visit-table">
+					<thead>
+						<tr>
+							<th>访问时间</th>
+							<th>IP</th>
+							<th>归属地</th>
+							<th>访问页面</th>
+						</tr>
+					</thead>
+					<tbody id="logs-body"></tbody>
+				</table>
+			</div>
+		</div>
+	</section>
+</MainGridLayout>
+
+<script>
+	const loginPanel = document.getElementById("login-panel");
+	const logsPanel = document.getElementById("logs-panel");
+	const loginForm = document.getElementById("login-form");
+	const passwordInput = document.getElementById("visit-log-password");
+	const loginError = document.getElementById("login-error");
+	const logsBody = document.getElementById("logs-body");
+	const logStatus = document.getElementById("log-status");
+	const refreshButton = document.getElementById("refresh-logs");
+
+	function showLogs() {
+		loginPanel?.classList.add("hidden");
+		logsPanel?.classList.remove("hidden");
+	}
+
+	function showLogin() {
+		logsPanel?.classList.add("hidden");
+		loginPanel?.classList.remove("hidden");
+	}
+
+	function formatTime(value) {
+		return new Intl.DateTimeFormat("zh-CN", {
+			dateStyle: "medium",
+			timeStyle: "medium",
+			hour12: false,
+		}).format(new Date(value));
+	}
+
+	function addCell(row, value, className = "") {
+		const cell = document.createElement("td");
+		cell.textContent = value || "-";
+		if (className) cell.className = className;
+		row.appendChild(cell);
+	}
+
+	function renderLogs(visits) {
+		if (!logsBody) return;
+		logsBody.replaceChildren();
+
+		if (visits.length === 0) {
+			const row = document.createElement("tr");
+			const cell = document.createElement("td");
+			cell.colSpan = 4;
+			cell.className = "empty-state";
+			cell.textContent = "暂无页面访问记录。";
+			row.appendChild(cell);
+			logsBody.appendChild(row);
+			return;
+		}
+
+		for (const visit of visits) {
+			const row = document.createElement("tr");
+			addCell(row, formatTime(visit.visited_at), "time-cell");
+			addCell(row, visit.ip, "ip-cell");
+			addCell(row, visit.location);
+			addCell(row, visit.path, "path-cell");
+			logsBody.appendChild(row);
+		}
+	}
+
+	async function loadLogs() {
+		if (logStatus) logStatus.textContent = "正在读取记录...";
+		try {
+			const response = await fetch("/api/admin/visit-logs", { credentials: "same-origin" });
+			if (response.status === 401) {
+				showLogin();
+				return;
+			}
+			if (!response.ok) throw new Error("Unable to load visit logs");
+
+			const data = await response.json();
+			renderLogs(Array.isArray(data.visits) ? data.visits : []);
+			if (logStatus) logStatus.textContent = `已显示最近 ${data.visits.length || 0} 条页面访问记录。`;
+		} catch {
+			if (logStatus) logStatus.textContent = "暂时无法读取访问记录，请稍后刷新。";
+		}
+	}
+
+	loginForm?.addEventListener("submit", async (event) => {
+		event.preventDefault();
+		const password = passwordInput instanceof HTMLInputElement ? passwordInput.value : "";
+		loginError?.classList.add("hidden");
+
+		try {
+			const response = await fetch("/api/admin/session", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				credentials: "same-origin",
+				body: JSON.stringify({ password }),
+			});
+			if (!response.ok) throw new Error("Invalid password");
+
+			if (passwordInput instanceof HTMLInputElement) passwordInput.value = "";
+			showLogs();
+			await loadLogs();
+		} catch {
+			loginError?.classList.remove("hidden");
+		}
+	});
+
+	refreshButton?.addEventListener("click", loadLogs);
+	void loadLogs();
+</script>
+
+<style>
+	.login-form {
+		display: flex;
+		flex-direction: column;
+		gap: 0.65rem;
+	}
+
+	.login-label {
+		color: var(--content-meta);
+		font-size: 0.875rem;
+		font-weight: 700;
+	}
+
+	.login-row {
+		display: flex;
+		gap: 0.75rem;
+	}
+
+	.login-input {
+		background: var(--card-bg);
+		border: 1px solid color-mix(in oklab, var(--primary) 20%, transparent);
+		border-radius: var(--radius-large);
+		color: var(--content);
+		flex: 1;
+		min-width: 0;
+		outline: none;
+		padding: 0.85rem 1rem;
+	}
+
+	.login-input:focus {
+		border-color: color-mix(in oklab, var(--primary) 55%, transparent);
+	}
+
+	.login-button,
+	.refresh-button {
+		background: var(--primary);
+		border-radius: var(--radius-large);
+		color: var(--btn-content);
+		font-weight: 800;
+		padding: 0.85rem 1.15rem;
+		transition: 0.2s ease;
+	}
+
+	.login-button:hover,
+	.refresh-button:hover {
+		transform: translateY(-1px);
+	}
+
+	.login-error {
+		color: #ef4444;
+		font-size: 0.875rem;
+	}
+
+	.visit-table {
+		border-collapse: collapse;
+		min-width: 720px;
+		width: 100%;
+	}
+
+	.visit-table th,
+	.visit-table td {
+		border-bottom: 1px solid var(--line-divider);
+		padding: 0.85rem 1rem;
+		text-align: left;
+		vertical-align: top;
+	}
+
+	.visit-table th {
+		background: color-mix(in oklab, var(--primary) 7%, var(--card-bg));
+		color: var(--content-meta);
+		font-size: 0.8rem;
+		font-weight: 800;
+		white-space: nowrap;
+	}
+
+	.visit-table tr:last-child td {
+		border-bottom: 0;
+	}
+
+	.time-cell,
+	.ip-cell,
+	.path-cell {
+		font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+		font-size: 0.8rem;
+	}
+
+	.path-cell {
+		max-width: 24rem;
+		word-break: break-all;
+	}
+
+	.empty-state {
+		color: var(--content-meta);
+		padding: 2rem !important;
+		text-align: center !important;
+	}
+
+	@media (max-width: 640px) {
+		.login-row {
+			flex-direction: column;
+		}
+	}
+</style>
