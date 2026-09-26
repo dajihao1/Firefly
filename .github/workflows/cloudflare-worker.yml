@@ -55,12 +55,10 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: pnpm exec wrangler deploy --config wrangler.deploy.json
-
-      # Deploy can replace Worker bindings, so write the password secret last.
-      - name: Sync visit log dashboard password
-        if: env.VISIT_LOGS_ADMIN_PASSWORD != ''
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: printf '%s' "$VISIT_LOGS_ADMIN_PASSWORD" | pnpm exec wrangler secret put VISIT_LOGS_ADMIN_PASSWORD --config wrangler.deploy.json
+        run: |
+          if [ -n "$VISIT_LOGS_ADMIN_PASSWORD" ]; then
+            printf 'VISIT_LOGS_ADMIN_PASSWORD=%s\n' "$VISIT_LOGS_ADMIN_PASSWORD" > .worker.secrets.env
+            pnpm exec wrangler deploy --config wrangler.deploy.json --secrets-file .worker.secrets.env
+          else
+            pnpm exec wrangler deploy --config wrangler.deploy.json
+          fi
