@@ -1,0 +1,146 @@
+---
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+const title = "收到留言";
+---
+
+<MainGridLayout title={title} description="查看访客私下留下的留言">
+	<section class="card-base px-5 py-6 md:px-8 md:py-7">
+		<div id="login-panel" class="max-w-xl">
+			<p class="text-sm font-semibold text-(--primary) mb-3">Private</p>
+			<h1 class="text-3xl font-bold mb-3">收到留言</h1>
+			<p class="text-75 leading-7 mb-6">使用后台管理密码后，只有你可以查看这里的留言。</p>
+			<form id="login-form" class="login-form">
+				<label class="login-label" for="message-admin-password">管理密码</label>
+				<div class="login-row">
+					<input id="message-admin-password" class="login-input" type="password" autocomplete="current-password" placeholder="请输入管理密码" required />
+					<button class="login-button" type="submit">查看留言</button>
+				</div>
+				<p id="login-error" class="login-error hidden">密码不正确或服务暂不可用。</p>
+			</form>
+		</div>
+
+		<div id="messages-panel" class="hidden">
+			<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+				<div>
+					<p class="text-sm font-semibold text-(--primary) mb-1">Private</p>
+					<h1 class="text-3xl font-bold">收到留言</h1>
+				</div>
+				<button id="refresh-messages" class="refresh-button" type="button">刷新留言</button>
+			</div>
+			<p id="message-status" class="text-sm text-75 mb-4">正在读取留言...</p>
+			<div id="message-list" class="message-list"></div>
+		</div>
+	</section>
+</MainGridLayout>
+
+<script>
+	const loginPanel = document.getElementById("login-panel");
+	const messagesPanel = document.getElementById("messages-panel");
+	const loginForm = document.getElementById("login-form");
+	const passwordInput = document.getElementById("message-admin-password");
+	const loginError = document.getElementById("login-error");
+	const status = document.getElementById("message-status");
+	const list = document.getElementById("message-list");
+	const refreshButton = document.getElementById("refresh-messages");
+
+	function showMessages() {
+		loginPanel?.classList.add("hidden");
+		messagesPanel?.classList.remove("hidden");
+	}
+
+	function showLogin() {
+		messagesPanel?.classList.add("hidden");
+		loginPanel?.classList.remove("hidden");
+	}
+
+	function formatTime(value) {
+		return new Intl.DateTimeFormat("zh-CN", {
+			dateStyle: "medium",
+			timeStyle: "medium",
+			hour12: false,
+		}).format(new Date(value));
+	}
+
+	function renderMessages(messages) {
+		if (!list) return;
+		list.replaceChildren();
+		if (messages.length === 0) {
+			const empty = document.createElement("p");
+			empty.className = "empty-state";
+			empty.textContent = "暂时还没有收到留言。";
+			list.appendChild(empty);
+			return;
+		}
+
+		for (const message of messages) {
+			const article = document.createElement("article");
+			article.className = "message-card";
+			const meta = document.createElement("p");
+			meta.className = "message-meta";
+			meta.textContent = `${message.name || "匿名访客"} · ${formatTime(message.created_at)} · ${message.ip}`;
+			const content = document.createElement("p");
+			content.className = "message-content";
+			content.textContent = message.message;
+			article.append(meta, content);
+			list.appendChild(article);
+		}
+	}
+
+	async function loadMessages() {
+		if (status) status.textContent = "正在读取留言...";
+		try {
+			const response = await fetch("/api/admin/messages", { credentials: "same-origin" });
+			if (response.status === 401) {
+				showLogin();
+				return;
+			}
+			if (!response.ok) throw new Error("Unable to load messages");
+			const data = await response.json();
+			const messages = Array.isArray(data.messages) ? data.messages : [];
+			renderMessages(messages);
+			if (status) status.textContent = `已显示最近 ${messages.length} 条留言。`;
+		} catch {
+			if (status) status.textContent = "暂时无法读取留言，请稍后刷新。";
+		}
+	}
+
+	loginForm?.addEventListener("submit", async (event) => {
+		event.preventDefault();
+		const password = passwordInput instanceof HTMLInputElement ? passwordInput.value : "";
+		loginError?.classList.add("hidden");
+		try {
+			const response = await fetch("/api/admin/session", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				credentials: "same-origin",
+				body: JSON.stringify({ password }),
+			});
+			if (!response.ok) throw new Error("Invalid password");
+			if (passwordInput instanceof HTMLInputElement) passwordInput.value = "";
+			showMessages();
+			await loadMessages();
+		} catch {
+			loginError?.classList.remove("hidden");
+		}
+	});
+
+	refreshButton?.addEventListener("click", loadMessages);
+	void loadMessages();
+</script>
+
+<style>
+	.login-form { display: flex; flex-direction: column; gap: 0.65rem; }
+	.login-label { color: var(--content-meta); font-size: 0.875rem; font-weight: 700; }
+	.login-row { display: flex; gap: 0.75rem; }
+	.login-input { background: var(--card-bg); border: 1px solid color-mix(in oklab, var(--primary) 20%, transparent); border-radius: var(--radius-large); color: var(--content); flex: 1; min-width: 0; outline: none; padding: 0.85rem 1rem; }
+	.login-button, .refresh-button { background: var(--primary); border-radius: var(--radius-large); color: var(--btn-content); font-weight: 800; padding: 0.85rem 1.15rem; transition: transform 0.2s ease; }
+	.login-button:hover, .refresh-button:hover { transform: translateY(-1px); }
+	.login-error { color: #ef4444; font-size: 0.875rem; }
+	.message-list { display: grid; gap: 0.85rem; }
+	.message-card { background: color-mix(in oklab, var(--primary) 6%, var(--card-bg)); border: 1px solid color-mix(in oklab, var(--primary) 17%, transparent); border-radius: var(--radius-large); padding: 1rem 1.1rem; }
+	.message-meta { color: var(--content-meta); font-family: var(--font-jetbrains-mono), ui-monospace, monospace; font-size: 0.75rem; margin: 0 0 0.65rem; }
+	.message-content { line-height: 1.75; margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+	.empty-state { color: var(--content-meta); margin: 0; padding: 2rem 0; text-align: center; }
+	@media (max-width: 640px) { .login-row { flex-direction: column; } }
+</style>

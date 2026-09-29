@@ -54,6 +54,14 @@ type VisitLog = {
 	location: string;
 };
 
+type PrivateMessage = {
+	id: number;
+	name: string;
+	message: string;
+	ip: string;
+	created_at: number;
+};
+
 function localizeCountry(countryCode: string | null | undefined): string | null {
 	if (!countryCode) {
 		return null;
@@ -100,6 +108,55 @@ async function recordClientVisit(request: Request, env: Env, ctx: WorkerContext)
 	}
 
 	ctx.waitUntil(recordVisit(request as RequestWithCloudflareData, path, env));
+	return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });
+}
+
+async function createPrivateMessage(request: Request, env: Env): Promise<Response> {
+	if (request.method !== "POST") {
+		return jsonResponse({ error: "Method not allowed" }, 405, { Allow: "POST" });
+	}
+
+	if (request.headers.get("Origin") !== new URL(request.url).origin) {
+		return jsonResponse({ error: "Invalid origin" }, 403);
+	}
+
+	let body: { name?: unknown; message?: unknown; website?: unknown };
+	try {
+		body = (await request.json()) as { name?: unknown; message?: unknown; website?: unknown };
+	} catch {
+		return jsonResponse({ error: "Invalid request" }, 400);
+	}
+
+	if (typeof body.website === "string" && body.website.trim()) {
+		return new Response(null, { status: 204 });
+	}
+
+	const name = typeof body.name === "string" ? body.name.trim() : "";
+	const message = typeof body.message === "string" ? body.message.trim() : "";
+	if (!message || name.length > 40 || message.length > 1000) {
+		return jsonResponse({ error: "Invalid message" }, 400);
+	}
+
+	const ip = request.headers.get("CF-Connecting-IP");
+	if (!ip) {
+		return jsonResponse({ error: "Unable to identify sender" }, 400);
+	}
+
+	const since = Date.now() - 24 * 60 * 60 * 1000;
+	const { results } = await env.VISITS_DB.prepare(
+		"SELECT COUNT(*) AS count FROM private_messages WHERE ip = ? AND created_at >= ?",
+	)
+		.bind(ip, since)
+		.all<{ count: number }>();
+	if ((results[0]?.count || 0) >= 3) {
+		return jsonResponse({ error: "Rate limit exceeded" }, 429);
+	}
+
+	await env.VISITS_DB.prepare(
+		"INSERT INTO private_messages (name, message, ip, created_at) VALUES (?, ?, ?, ?)",
+	)
+		.bind(name, message, ip, Date.now())
+		.run();
 	return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });
 }
 
@@ -268,6 +325,25 @@ async function getVisitLogs(request: Request, env: Env): Promise<Response> {
 	}
 }
 
+async function getPrivateMessages(request: Request, env: Env): Promise<Response> {
+	if (request.method !== "GET") {
+		return jsonResponse({ error: "Method not allowed" }, 405, { Allow: "GET" });
+	}
+	if (!env.VISIT_LOGS_ADMIN_PASSWORD || !(await hasValidSession(request, env.VISIT_LOGS_ADMIN_PASSWORD))) {
+		return jsonResponse({ error: "Unauthorized" }, 401);
+	}
+
+	try {
+		const { results } = await env.VISITS_DB.prepare(
+			"SELECT id, name, message, ip, created_at FROM private_messages ORDER BY created_at DESC LIMIT 200",
+		)
+			.all<PrivateMessage>();
+		return jsonResponse({ messages: results });
+	} catch {
+		return jsonResponse({ error: "Unable to load messages" }, 500);
+	}
+}
+
 export default {
 	async fetch(request: Request, env: Env, ctx: WorkerContext): Promise<Response> {
 		const pathname = new URL(request.url).pathname;
@@ -279,6 +355,12 @@ export default {
 		}
 		if (pathname === "/api/visit") {
 			return recordClientVisit(request, env, ctx);
+		}
+		if (pathname === "/api/messages") {
+			return createPrivateMessage(request, env);
+		}
+		if (pathname === "/api/admin/messages") {
+			return getPrivateMessages(request, env);
 		}
 
 		return env.ASSETS.fetch(request);

@@ -2,6 +2,7 @@
 
 import { getEntry, render } from "astro:content";
 import Markdown from "@components/common/Markdown.astro";
+import PrivateMessageForm from "@components/features/PrivateMessageForm.astro";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
@@ -20,6 +21,7 @@ const { Content } = await render(aboutPost);
             <Markdown class="mt-2">
                 <Content />
             </Markdown>
+            <PrivateMessageForm />
         </div>
     </div>
 </MainGridLayout>

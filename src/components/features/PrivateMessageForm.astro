@@ -1,0 +1,145 @@
+<div class="private-message-box">
+	<button id="open-message-form" class="message-trigger" type="button">
+		给我留言
+	</button>
+
+	<form id="private-message-form" class="message-form hidden">
+		<label for="message-name">怎么称呼你？<span>可选</span></label>
+		<input id="message-name" name="name" maxlength="40" autocomplete="name" placeholder="留下昵称即可" />
+
+		<label for="message-content">留言内容</label>
+		<textarea id="message-content" name="message" maxlength="1000" required placeholder="想说什么？"></textarea>
+
+		<!-- Hidden field catches simple form bots without affecting real visitors. -->
+		<input class="honeypot" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+		<div class="message-actions">
+			<button class="message-submit" type="submit">发送留言</button>
+			<p id="message-status" class="message-status" aria-live="polite"></p>
+		</div>
+	</form>
+</div>
+
+<script>
+	const openButton = document.getElementById("open-message-form");
+	const form = document.getElementById("private-message-form");
+	const status = document.getElementById("message-status");
+	const content = document.getElementById("message-content");
+
+	openButton?.addEventListener("click", () => {
+		form?.classList.remove("hidden");
+		openButton.classList.add("hidden");
+		if (content instanceof HTMLTextAreaElement) content.focus();
+	});
+
+	form?.addEventListener("submit", async (event) => {
+		event.preventDefault();
+		if (!(form instanceof HTMLFormElement)) return;
+
+		const data = new FormData(form);
+		const name = String(data.get("name") || "");
+		const message = String(data.get("message") || "");
+		const website = String(data.get("website") || "");
+		if (status) status.textContent = "正在发送...";
+
+		try {
+			const response = await fetch("/api/messages", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				credentials: "omit",
+				body: JSON.stringify({ name, message, website }),
+			});
+
+			if (response.status === 429) {
+				if (status) status.textContent = "今天的留言次数已达上限，请明天再来。";
+				return;
+			}
+			if (!response.ok) throw new Error("Unable to send message");
+
+			form.reset();
+			if (status) status.textContent = "已收到，谢谢你的留言。";
+		} catch {
+			if (status) status.textContent = "发送失败，请稍后再试。";
+		}
+	});
+</script>
+
+<style>
+	.private-message-box {
+		margin-top: 1.5rem;
+	}
+
+	.message-trigger,
+	.message-submit {
+		background: var(--primary);
+		border-radius: var(--radius-large);
+		color: var(--btn-content);
+		font-weight: 800;
+		padding: 0.75rem 1.15rem;
+		transition: transform 0.2s ease, opacity 0.2s ease;
+	}
+
+	.message-trigger:hover,
+	.message-submit:hover {
+		transform: translateY(-1px);
+	}
+
+	.message-form {
+		background: color-mix(in oklab, var(--primary) 6%, var(--card-bg));
+		border: 1px solid color-mix(in oklab, var(--primary) 20%, transparent);
+		border-radius: var(--radius-large);
+		display: flex;
+		flex-direction: column;
+		gap: 0.65rem;
+		max-width: 42rem;
+		padding: 1rem;
+	}
+
+	.message-form label {
+		color: var(--content-meta);
+		font-size: 0.875rem;
+		font-weight: 700;
+	}
+
+	.message-form label span {
+		font-weight: 400;
+		margin-left: 0.35rem;
+	}
+
+	.message-form input:not(.honeypot),
+	.message-form textarea {
+		background: var(--card-bg);
+		border: 1px solid color-mix(in oklab, var(--primary) 20%, transparent);
+		border-radius: var(--radius-large);
+		color: var(--content);
+		outline: none;
+		padding: 0.75rem 0.9rem;
+	}
+
+	.message-form textarea {
+		min-height: 9rem;
+		resize: vertical;
+	}
+
+	.message-form input:focus,
+	.message-form textarea:focus {
+		border-color: color-mix(in oklab, var(--primary) 55%, transparent);
+	}
+
+	.message-actions {
+		align-items: center;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+	}
+
+	.message-status {
+		color: var(--content-meta);
+		font-size: 0.875rem;
+		margin: 0;
+	}
+
+	.honeypot {
+		display: none;
+	}
+</style>

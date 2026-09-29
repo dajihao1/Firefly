@@ -8,6 +8,7 @@ const postsUrl = `${repoUrl}/tree/master/src/content/posts`;
 const configUrl = `${repoUrl}/tree/master/src/config`;
 const deploymentsUrl = "https://dash.cloudflare.com/";
 const visitLogsUrl = "/admin/visit-logs/";
+const messagesUrl = "/admin/messages/";
 ---
 
 <MainGridLayout title={title} description="管理文章、资料与站点配置的入口">
@@ -65,6 +66,10 @@ const visitLogsUrl = "/admin/visit-logs/";
 				<a class="btn-card" href={visitLogsUrl}>
 					<span class="btn-title">访问记录</span>
 					<span class="btn-desc">查看访客 IP、归属地、访问时间和页面</span>
+				</a>
+				<a class="btn-card" href={messagesUrl}>
+					<span class="btn-title">收到留言</span>
+					<span class="btn-desc">查看访客私下提交的留言内容</span>
 				</a>
 			</div>
 		</div>
